@@ -177,15 +177,17 @@ export interface Transaction {
 export interface Card {
   id: string
   account_id: string
-  card_number_last4: string
+  user_id: string
   card_type: CardType
-  cardholder_name: string
+  card_number_last_four: string
+  card_holder_name: string
   expiry_date: string
   is_frozen: boolean
   is_contactless_enabled: boolean
-  daily_limit: number
-  online_limit: number
-  atm_limit: number
+  online_payments_enabled: boolean
+  atm_withdrawals_enabled: boolean
+  spending_limit_daily: number
+  spending_limit_monthly: number
   status: CardStatus
   created_at: string
   updated_at: string

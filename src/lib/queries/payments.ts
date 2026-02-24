@@ -5,7 +5,7 @@ export async function getScheduledPayments(): Promise<ScheduledPayment[]> {
   const supabase = await createClient()
   const { data, error } = await supabase
     .from('scheduled_payments')
-    .select('*, payee:payees(*), from_account:accounts(*)')
+    .select('*, payee:payees(*), from_account:accounts!from_account_id(*)')
     .order('next_payment_date')
 
   if (error) {

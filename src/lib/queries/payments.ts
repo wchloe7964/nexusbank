@@ -5,9 +5,29 @@ export async function getScheduledPayments(): Promise<ScheduledPayment[]> {
   const supabase = await createClient()
   const { data, error } = await supabase
     .from('scheduled_payments')
-    .select('*')
+    .select('*, payee:payees(*), from_account:accounts(*)')
     .order('next_payment_date')
 
   if (error) throw error
   return data as ScheduledPayment[]
+}
+
+export async function togglePaymentStatus(paymentId: string, status: 'active' | 'paused') {
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from('scheduled_payments')
+    .update({ status })
+    .eq('id', paymentId)
+
+  if (error) throw error
+}
+
+export async function cancelPayment(paymentId: string) {
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from('scheduled_payments')
+    .update({ status: 'cancelled' })
+    .eq('id', paymentId)
+
+  if (error) throw error
 }

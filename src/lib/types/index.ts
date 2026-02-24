@@ -107,13 +107,13 @@ export type CardType = 'debit' | 'credit'
 
 export type CardStatus = 'active' | 'frozen' | 'expired' | 'cancelled' | 'reported_lost'
 
-export type PaymentType = 'standing_order' | 'direct_debit' | 'scheduled'
+export type PaymentType = 'standing_order' | 'direct_debit' | 'scheduled_transfer' | 'bill_payment'
 
-export type PaymentFrequency = 'once' | 'weekly' | 'fortnightly' | 'monthly' | 'quarterly' | 'yearly'
+export type PaymentFrequency = 'once' | 'weekly' | 'fortnightly' | 'monthly' | 'quarterly' | 'annually'
 
 export type PaymentStatus = 'active' | 'paused' | 'cancelled' | 'completed'
 
-export type NotificationType = 'transaction' | 'transfer' | 'payment' | 'security' | 'alert' | 'system'
+export type NotificationType = 'transaction' | 'security' | 'account' | 'promotion' | 'system'
 
 export interface Profile {
   id: string
@@ -199,7 +199,6 @@ export interface Payee {
   name: string
   sort_code: string
   account_number: string
-  bank_name: string | null
   reference: string | null
   is_favourite: boolean
   created_at: string
@@ -208,20 +207,25 @@ export interface Payee {
 
 export interface ScheduledPayment {
   id: string
-  account_id: string
-  payee_name: string
-  payee_sort_code: string
-  payee_account_number: string
+  user_id: string
+  from_account_id: string
+  payee_id: string | null
+  to_account_id: string | null
+  payment_type: PaymentType
   amount: number
   currency_code: string
   reference: string | null
+  description: string | null
   frequency: PaymentFrequency
   next_payment_date: string
   end_date: string | null
-  payment_type: PaymentType
   status: PaymentStatus
+  last_executed_at: string | null
   created_at: string
   updated_at: string
+  // Joined fields (from payee)
+  payee?: Payee | null
+  from_account?: Account | null
 }
 
 export interface Notification {

@@ -1,0 +1,33 @@
+import {
+  ArrowLeftRight,
+  Banknote,
+  FileText,
+  ShoppingCart,
+  ShoppingBag,
+  Bus,
+  Tv,
+  UtensilsCrossed,
+  Heart,
+  GraduationCap,
+  Repeat,
+  Coins,
+  HelpCircle,
+} from 'lucide-react'
+
+export const transactionCategories = {
+  transfer: { label: 'Transfer', icon: ArrowLeftRight, color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-950' },
+  salary: { label: 'Salary', icon: Banknote, color: 'text-green-500', bg: 'bg-green-50 dark:bg-green-950' },
+  bills: { label: 'Bills', icon: FileText, color: 'text-orange-500', bg: 'bg-orange-50 dark:bg-orange-950' },
+  groceries: { label: 'Groceries', icon: ShoppingCart, color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-950' },
+  shopping: { label: 'Shopping', icon: ShoppingBag, color: 'text-purple-500', bg: 'bg-purple-50 dark:bg-purple-950' },
+  transport: { label: 'Transport', icon: Bus, color: 'text-cyan-500', bg: 'bg-cyan-50 dark:bg-cyan-950' },
+  entertainment: { label: 'Entertainment', icon: Tv, color: 'text-pink-500', bg: 'bg-pink-50 dark:bg-pink-950' },
+  dining: { label: 'Dining', icon: UtensilsCrossed, color: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-950' },
+  health: { label: 'Health', icon: Heart, color: 'text-red-500', bg: 'bg-red-50 dark:bg-red-950' },
+  education: { label: 'Education', icon: GraduationCap, color: 'text-indigo-500', bg: 'bg-indigo-50 dark:bg-indigo-950' },
+  subscriptions: { label: 'Subscriptions', icon: Repeat, color: 'text-violet-500', bg: 'bg-violet-50 dark:bg-violet-950' },
+  cash: { label: 'Cash', icon: Coins, color: 'text-yellow-500', bg: 'bg-yellow-50 dark:bg-yellow-950' },
+  other: { label: 'Other', icon: HelpCircle, color: 'text-gray-500', bg: 'bg-gray-50 dark:bg-gray-950' },
+} as const
+
+export type TransactionCategory = keyof typeof transactionCategories

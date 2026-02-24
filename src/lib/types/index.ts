@@ -11,13 +11,35 @@ export type EmploymentStatus =
   | 'unemployed'
   | 'other'
 
-export type SavingsGoal =
+export type SavingsGoalType =
   | 'emergency-fund'
   | 'holiday'
   | 'home-deposit'
   | 'general'
   | 'retirement'
   | 'other'
+
+export type SavingsGoalColor =
+  | 'blue' | 'green' | 'purple' | 'orange' | 'pink' | 'cyan' | 'amber' | 'red'
+
+export interface SavingsGoal {
+  id: string
+  user_id: string
+  account_id: string
+  name: string
+  goal_type: SavingsGoalType
+  target_amount: number
+  current_amount: number
+  currency_code: string
+  target_date: string | null
+  icon: string
+  color: SavingsGoalColor
+  is_completed: boolean
+  completed_at: string | null
+  created_at: string
+  updated_at: string
+  account?: Account | null
+}
 
 export interface EnrollmentData {
   // Step 1 — Your Details
@@ -237,4 +259,80 @@ export interface Notification {
   is_read: boolean
   action_url: string | null
   created_at: string
+}
+
+// Budget types
+export interface Budget {
+  id: string
+  user_id: string
+  category: TransactionCategory
+  monthly_limit: number
+  currency_code: string
+  is_active: boolean
+  alert_threshold: number
+  created_at: string
+  updated_at: string
+}
+
+export interface BudgetWithSpending extends Budget {
+  spent: number
+  remaining: number
+  percentage: number
+  status: 'on-track' | 'warning' | 'exceeded'
+}
+
+// Direct Debit types
+export interface DirectDebitWithHistory extends ScheduledPayment {
+  total_paid: number
+  payment_count: number
+  last_payment_date: string | null
+  last_payment_amount: number | null
+}
+
+// Account Opening types
+export interface AccountOpeningConfig {
+  type: AccountType
+  label: string
+  description: string
+  features: string[]
+  interestRate: number
+  overdraftAvailable: boolean
+  defaultOverdraft: number
+}
+
+// Security types
+export type SecurityEventType =
+  | 'login_success'
+  | 'login_failed'
+  | 'logout'
+  | 'password_changed'
+  | 'two_factor_enabled'
+  | 'two_factor_disabled'
+  | 'profile_updated'
+  | 'session_expired'
+  | 'suspicious_activity'
+
+export interface LoginActivity {
+  id: string
+  user_id: string
+  event_type: SecurityEventType
+  ip_address: string | null
+  user_agent: string | null
+  device_type: 'desktop' | 'mobile' | 'tablet' | 'unknown'
+  browser: string | null
+  os: string | null
+  location: string | null
+  is_suspicious: boolean
+  metadata: Record<string, unknown>
+  created_at: string
+}
+
+export interface SecurityScore {
+  score: number
+  factors: {
+    label: string
+    points: number
+    maxPoints: number
+    achieved: boolean
+  }[]
 }

@@ -8,17 +8,65 @@ import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
-import { User, Shield, Bell, Smartphone, Mail, Eye, EyeOff, CheckCircle, AlertCircle, Loader2, Fingerprint } from 'lucide-react'
-import { updateProfile, changePassword, updateNotificationPreferences } from './actions'
+import { Progress } from '@/components/ui/progress'
+import { Dialog } from '@/components/ui/dialog'
+import { cn } from '@/lib/utils/cn'
+import {
+  User, Shield, Bell, Smartphone, Mail, Eye, EyeOff, CheckCircle, AlertCircle,
+  Loader2, Fingerprint, LogIn, LogOut, Key, ShieldAlert, XCircle, Monitor,
+  Tablet, Phone,
+} from 'lucide-react'
+import { updateProfile, changePassword, updateNotificationPreferences, signOutAllDevices } from './actions'
 import { TwoFactorSetupDialog } from '@/components/two-factor/two-factor-setup-dialog'
 import { TwoFactorDisableDialog } from '@/components/two-factor/two-factor-disable-dialog'
-import type { Profile } from '@/lib/types'
+import { formatDistanceToNow } from 'date-fns'
+import type { Profile, LoginActivity, SecurityScore } from '@/lib/types'
+
+const eventIcons: Record<string, typeof LogIn> = {
+  login_success: LogIn,
+  login_failed: ShieldAlert,
+  logout: LogOut,
+  password_changed: Key,
+  two_factor_enabled: Shield,
+  two_factor_disabled: Shield,
+  profile_updated: User,
+  session_expired: XCircle,
+  suspicious_activity: ShieldAlert,
+}
+
+const eventLabels: Record<string, string> = {
+  login_success: 'Successful login',
+  login_failed: 'Failed login attempt',
+  logout: 'Logged out',
+  password_changed: 'Password changed',
+  two_factor_enabled: '2FA enabled',
+  two_factor_disabled: '2FA disabled',
+  profile_updated: 'Profile updated',
+  session_expired: 'Session expired',
+  suspicious_activity: 'Suspicious activity',
+}
+
+const deviceIcons: Record<string, typeof Monitor> = {
+  desktop: Monitor,
+  mobile: Phone,
+  tablet: Tablet,
+  unknown: Monitor,
+}
+
+function maskIp(ip: string | null): string {
+  if (!ip) return 'Unknown'
+  const parts = ip.split('.')
+  if (parts.length === 4) return `${parts[0]}.${parts[1]}.***.*${parts[3].slice(-1)}`
+  return ip.slice(0, 8) + '***'
+}
 
 interface SettingsClientProps {
   profile: Profile
+  loginActivity: LoginActivity[]
+  securityScore: SecurityScore
 }
 
-export default function SettingsClient({ profile }: SettingsClientProps) {
+export default function SettingsClient({ profile, loginActivity, securityScore }: SettingsClientProps) {
   // Profile state
   const [fullName, setFullName] = useState(profile.full_name ?? '')
   const [email] = useState(profile.email ?? '')
@@ -52,6 +100,10 @@ export default function SettingsClient({ profile }: SettingsClientProps) {
   const [marketingEmails, setMarketingEmails] = useState(false)
   const [notifSaving, setNotifSaving] = useState(false)
   const [notifMessage, setNotifMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+
+  // Sign out all devices
+  const [showSignOutDialog, setShowSignOutDialog] = useState(false)
+  const [signingOut, setSigningOut] = useState(false)
 
   // Read biometric preference from localStorage (SSR-safe)
   useEffect(() => {
@@ -117,6 +169,20 @@ export default function SettingsClient({ profile }: SettingsClientProps) {
     }
     setTimeout(() => setNotifMessage(null), 4000)
   }
+
+  async function handleSignOutAll() {
+    setSigningOut(true)
+    const result = await signOutAllDevices()
+    setSigningOut(false)
+    if (result.error) {
+      setNotifMessage({ type: 'error', text: result.error })
+    }
+    // If successful, the user will be redirected to login
+  }
+
+  // Security score color
+  const scoreColor = securityScore.score >= 71 ? 'text-emerald-500' : securityScore.score >= 41 ? 'text-amber-500' : 'text-red-500'
+  const scoreIndicator = securityScore.score >= 71 ? '[&>div]:bg-emerald-500' : securityScore.score >= 41 ? '[&>div]:bg-amber-500' : '[&>div]:bg-red-500'
 
   return (
     <div className="space-y-8">
@@ -337,6 +403,132 @@ export default function SettingsClient({ profile }: SettingsClientProps) {
                 setShowDisable2FA(false)
               }}
             />
+
+            {/* Security Score Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base tracking-tight">Security Score</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex items-center gap-6 mb-4">
+                  <div className="text-center">
+                    <p className={cn('text-4xl font-bold tabular-nums', scoreColor)}>{securityScore.score}</p>
+                    <p className="text-xs text-muted-foreground">out of 100</p>
+                  </div>
+                  <div className="flex-1">
+                    <Progress value={securityScore.score} className={cn('h-3', scoreIndicator)} />
+                    <p className="text-xs text-muted-foreground mt-1.5">
+                      {securityScore.score >= 71 ? 'Your account is well protected' :
+                       securityScore.score >= 41 ? 'Your account has moderate protection' :
+                       'Your account needs attention'}
+                    </p>
+                  </div>
+                </div>
+                <div className="space-y-2.5">
+                  {securityScore.factors.map((factor) => (
+                    <div key={factor.label} className="flex items-center justify-between text-sm">
+                      <div className="flex items-center gap-2">
+                        {factor.achieved ? (
+                          <CheckCircle className="h-4 w-4 text-emerald-500" />
+                        ) : (
+                          <XCircle className="h-4 w-4 text-muted-foreground" />
+                        )}
+                        <span className={factor.achieved ? '' : 'text-muted-foreground'}>{factor.label}</span>
+                      </div>
+                      <span className={cn('text-xs tabular-nums', factor.achieved ? 'text-emerald-500' : 'text-muted-foreground')}>
+                        {factor.points}/{factor.maxPoints}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Recent Activity Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base tracking-tight">Recent Activity</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {loginActivity.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-4">
+                    No recent login activity recorded.
+                  </p>
+                ) : (
+                  <div className="divide-y divide-border">
+                    {loginActivity.slice(0, 10).map((event) => {
+                      const EventIcon = eventIcons[event.event_type] || LogIn
+                      const DeviceIcon = deviceIcons[event.device_type] || Monitor
+                      const isSuspicious = event.is_suspicious || event.event_type === 'login_failed' || event.event_type === 'suspicious_activity'
+
+                      return (
+                        <div key={event.id} className="flex items-start gap-3 py-3">
+                          <div className={cn(
+                            'rounded-full p-2 shrink-0 mt-0.5',
+                            isSuspicious ? 'bg-red-500/10' : 'bg-primary/[0.08]'
+                          )}>
+                            <EventIcon className={cn('h-3.5 w-3.5', isSuspicious ? 'text-red-500' : 'text-primary')} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <p className="text-sm font-medium">{eventLabels[event.event_type] || event.event_type}</p>
+                              {isSuspicious && <Badge variant="destructive" className="text-[10px]">Suspicious</Badge>}
+                            </div>
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground mt-0.5">
+                              <span>{formatDistanceToNow(new Date(event.created_at), { addSuffix: true })}</span>
+                              {event.browser && (
+                                <>
+                                  <span>&middot;</span>
+                                  <span className="flex items-center gap-1">
+                                    <DeviceIcon className="h-3 w-3" />
+                                    {event.browser}{event.os ? ` on ${event.os}` : ''}
+                                  </span>
+                                </>
+                              )}
+                            </div>
+                            {event.ip_address && (
+                              <p className="text-xs text-muted-foreground mt-0.5 font-mono">
+                                IP: {maskIp(event.ip_address)}
+                                {event.location && ` · ${event.location}`}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Sign Out All Devices */}
+            <Card className="border-destructive/20">
+              <CardContent className="p-5">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium">Sign Out All Devices</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      This will sign you out of all browsers and devices, including this one.
+                    </p>
+                  </div>
+                  <Button variant="destructive" size="sm" onClick={() => setShowSignOutDialog(true)}>
+                    Sign Out All
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Dialog open={showSignOutDialog} onClose={() => setShowSignOutDialog(false)} title="Sign Out All Devices">
+              <p className="text-sm text-muted-foreground">
+                Are you sure you want to sign out of all devices? You will need to log in again on this and all other devices.
+              </p>
+              <div className="flex gap-2 mt-4">
+                <Button variant="ghost" className="flex-1" onClick={() => setShowSignOutDialog(false)}>Cancel</Button>
+                <Button variant="destructive" className="flex-1" onClick={handleSignOutAll} disabled={signingOut}>
+                  {signingOut ? 'Signing out...' : 'Sign Out All Devices'}
+                </Button>
+              </div>
+            </Dialog>
           </div>
         </TabsContent>
 

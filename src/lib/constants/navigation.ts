@@ -14,6 +14,8 @@ import {
   Send,
   HelpCircle,
   MoreHorizontal,
+  PiggyBank,
+  Target,
 } from 'lucide-react'
 
 export const navigation = [
@@ -46,6 +48,16 @@ export const navigation = [
     label: 'Cards',
     href: '/cards',
     icon: CreditCard,
+  },
+  {
+    label: 'Savings',
+    href: '/savings-goals',
+    icon: PiggyBank,
+  },
+  {
+    label: 'Budgets',
+    href: '/budgets',
+    icon: Target,
   },
   {
     label: 'Insights',

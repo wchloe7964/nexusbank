@@ -1,9 +1,10 @@
 import { PageHeader } from '@/components/shared/page-header'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { formatGBP } from '@/lib/utils/currency'
 import { formatSortCode } from '@/lib/utils/sort-code'
-import { Wallet } from 'lucide-react'
+import { Wallet, Plus } from 'lucide-react'
 import Link from 'next/link'
 import { getAccounts, getTotalBalance } from '@/lib/queries/accounts'
 
@@ -35,6 +36,14 @@ export default async function AccountsPage() {
           accounts.length > 0
             ? `Total balance: ${formatGBP(totalBalance)}`
             : undefined
+        }
+        action={
+          <Link href="/accounts/open">
+            <Button size="sm">
+              <Plus className="mr-2 h-4 w-4" />
+              Open New Account
+            </Button>
+          </Link>
         }
       />
 

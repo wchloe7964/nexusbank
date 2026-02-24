@@ -108,4 +108,31 @@ INSERT INTO public.notifications (user_id, title, message, type, is_read, action
 (demo_user_id, 'Rent Payment Sent', 'Standing order of £850.00 to PMC Ltd processed', 'transaction', TRUE, '/transactions'),
 (demo_user_id, 'Card Used Abroad', 'Your debit card ending 4589 was used in Paris, France', 'security', FALSE, '/cards');
 
+-- Savings Goals
+INSERT INTO public.savings_goals (user_id, account_id, name, goal_type, target_amount, current_amount, target_date, color, is_completed, completed_at) VALUES
+(demo_user_id, savings_acct_id, 'Summer Holiday', 'holiday', 2500.00, 1450.00, (NOW() + INTERVAL '4 months')::DATE, 'orange', FALSE, NULL),
+(demo_user_id, savings_acct_id, 'Emergency Fund', 'emergency-fund', 5000.00, 3200.00, NULL, 'red', FALSE, NULL),
+(demo_user_id, savings_acct_id, 'House Deposit', 'home-deposit', 25000.00, 8750.00, (NOW() + INTERVAL '2 years')::DATE, 'blue', FALSE, NULL),
+(demo_user_id, savings_acct_id, 'New Laptop', 'other', 1200.00, 1200.00, NULL, 'purple', TRUE, NOW() - INTERVAL '14 days');
+
+-- Budgets
+INSERT INTO public.budgets (user_id, category, monthly_limit, alert_threshold) VALUES
+(demo_user_id, 'groceries', 400.00, 0.80),
+(demo_user_id, 'dining', 150.00, 0.80),
+(demo_user_id, 'entertainment', 100.00, 0.80),
+(demo_user_id, 'shopping', 200.00, 0.75),
+(demo_user_id, 'transport', 120.00, 0.85),
+(demo_user_id, 'subscriptions', 50.00, 0.90),
+(demo_user_id, 'bills', 800.00, 0.90);
+
+-- Login Activity
+INSERT INTO public.login_activity (user_id, event_type, ip_address, device_type, browser, os, location, is_suspicious, created_at) VALUES
+(demo_user_id, 'login_success', '192.168.1.42', 'desktop', 'Chrome 120', 'macOS', 'London, UK', FALSE, NOW() - INTERVAL '2 hours'),
+(demo_user_id, 'login_success', '192.168.1.42', 'desktop', 'Chrome 120', 'macOS', 'London, UK', FALSE, NOW() - INTERVAL '1 day'),
+(demo_user_id, 'login_success', '10.0.0.15', 'mobile', 'Safari 17', 'iOS 17', 'London, UK', FALSE, NOW() - INTERVAL '2 days'),
+(demo_user_id, 'login_failed', '203.45.67.89', 'unknown', NULL, NULL, 'Mumbai, India', TRUE, NOW() - INTERVAL '3 days'),
+(demo_user_id, 'password_changed', '192.168.1.42', 'desktop', 'Chrome 120', 'macOS', 'London, UK', FALSE, NOW() - INTERVAL '5 days'),
+(demo_user_id, 'login_success', '192.168.1.42', 'desktop', 'Firefox 121', 'Windows 11', 'London, UK', FALSE, NOW() - INTERVAL '7 days'),
+(demo_user_id, 'two_factor_enabled', '192.168.1.42', 'desktop', 'Chrome 120', 'macOS', 'London, UK', FALSE, NOW() - INTERVAL '10 days');
+
 END $$;

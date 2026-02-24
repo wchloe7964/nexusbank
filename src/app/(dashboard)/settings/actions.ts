@@ -1,6 +1,8 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
+import { revalidatePath } from 'next/cache'
 
 export async function updateProfile(data: {
   full_name: string
@@ -143,5 +145,36 @@ export async function updateNotificationPreferences(data: {
     return { success: true }
   } catch {
     return { error: 'An unexpected error occurred' }
+  }
+}
+
+export async function signOutAllDevices(): Promise<{ error?: string; success?: boolean }> {
+  const supabase = await createClient()
+  const { error } = await supabase.auth.signOut({ scope: 'global' })
+
+  if (error) {
+    return { error: error.message }
+  }
+
+  revalidatePath('/')
+  redirect('/auth/login')
+}
+
+export async function logSecurityEvent(
+  eventType: string,
+  metadata?: Record<string, unknown>,
+): Promise<void> {
+  try {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
+    await supabase.from('login_activity').insert({
+      user_id: user.id,
+      event_type: eventType,
+      metadata: metadata || {},
+    })
+  } catch {
+    console.error('Failed to log security event')
   }
 }

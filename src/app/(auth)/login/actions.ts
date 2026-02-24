@@ -76,6 +76,15 @@ export async function signInWithIdentifier(payload: LoginPayload) {
   }
 
   if (!matchedUser) {
+    // Log failed login attempt
+    try {
+      await admin.from('login_activity').insert({
+        user_id: users[0]?.id || '00000000-0000-0000-0000-000000000000',
+        event_type: 'login_failed',
+        device_type: 'unknown',
+        metadata: { method, reason: 'no_matching_account' },
+      })
+    } catch { /* ignore logging errors */ }
     return { error: 'We couldn\'t find an account matching those details. Please check and try again.' }
   }
 
@@ -111,6 +120,16 @@ export async function signInWithIdentifier(payload: LoginPayload) {
     return { error: 'Sign-in verification failed. Please try again.' }
   }
 
+  // Log successful login
+  try {
+    await supabase.from('login_activity').insert({
+      user_id: matchedUser.id,
+      event_type: 'login_success',
+      device_type: 'unknown',
+      metadata: { method },
+    })
+  } catch { /* ignore logging errors */ }
+
   // Check if user has MFA enrolled — redirect to 2FA challenge if needed
   const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
 
@@ -133,6 +152,19 @@ export async function signIn(formData: FormData) {
 
   const { error } = await supabase.auth.signInWithPassword({ email, password })
   if (error) return { error: error.message }
+
+  // Log successful login
+  try {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
+      await supabase.from('login_activity').insert({
+        user_id: user.id,
+        event_type: 'login_success',
+        device_type: 'unknown',
+        metadata: { method: 'email_password' },
+      })
+    }
+  } catch { /* ignore logging errors */ }
 
   const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
 

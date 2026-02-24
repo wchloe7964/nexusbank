@@ -166,3 +166,35 @@ export const businessStep3Schema = z.object({
   message: 'Passwords do not match',
   path: ['confirmPassword'],
 })
+
+// ---------- Savings Goals ----------
+
+export const savingsGoalSchema = z.object({
+  name: z.string().min(1, 'Goal name is required').max(50),
+  goalType: z.enum(['emergency-fund', 'holiday', 'home-deposit', 'general', 'retirement', 'other']),
+  targetAmount: z.number().positive('Target must be greater than 0').max(1000000, 'Maximum target is £1,000,000'),
+  targetDate: z.string().optional(),
+  accountId: z.string().min(1, 'Please select an account'),
+  color: z.enum(['blue', 'green', 'purple', 'orange', 'pink', 'cyan', 'amber', 'red']).default('blue'),
+})
+
+export const savingsAdjustmentSchema = z.object({
+  goalId: z.string().min(1),
+  amount: z.number().positive('Amount must be greater than 0').max(250000),
+})
+
+// ---------- Budgets ----------
+
+export const budgetSchema = z.object({
+  category: z.string().min(1, 'Please select a category'),
+  monthlyLimit: z.number().positive('Limit must be greater than 0').max(100000, 'Maximum budget is £100,000'),
+  alertThreshold: z.number().min(0.5).max(1).default(0.8),
+})
+
+// ---------- Account Opening ----------
+
+export const accountOpeningSchema = z.object({
+  accountType: z.enum(['current', 'savings', 'isa', 'business']),
+  accountName: z.string().min(1, 'Account name is required').max(50),
+  overdraftLimit: z.number().min(0).max(25000).default(0),
+})

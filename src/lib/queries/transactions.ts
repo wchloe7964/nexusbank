@@ -42,7 +42,10 @@ export async function getTransactions(filters: TransactionFilters = {}): Promise
 
   const { data, error, count } = await query
 
-  if (error) throw error
+  if (error) {
+    console.error('getTransactions error:', error.message)
+    return { data: [], total: 0, page, pageSize, totalPages: 0 }
+  }
 
   return {
     data: data as Transaction[],
@@ -65,7 +68,10 @@ export async function getRecentTransactions(accountId?: string, limit = 5): Prom
   if (accountId) query = query.eq('account_id', accountId)
 
   const { data, error } = await query
-  if (error) throw error
+  if (error) {
+    console.error('getRecentTransactions error:', error.message)
+    return []
+  }
   return data as Transaction[]
 }
 
@@ -83,7 +89,10 @@ export async function getSpendingByCategory(accountId?: string): Promise<{ categ
   if (accountId) query = query.eq('account_id', accountId)
 
   const { data, error } = await query
-  if (error) throw error
+  if (error) {
+    console.error('getSpendingByCategory error:', error.message)
+    return []
+  }
 
   const grouped: Record<string, number> = {}
   for (const t of data) {

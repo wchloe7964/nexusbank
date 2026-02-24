@@ -9,6 +9,9 @@ export async function getPayees(): Promise<Payee[]> {
     .order('is_favourite', { ascending: false })
     .order('name')
 
-  if (error) throw error
+  if (error) {
+    console.error('getPayees error:', error.message)
+    return []
+  }
   return data as Payee[]
 }

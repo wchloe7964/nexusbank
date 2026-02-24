@@ -8,7 +8,10 @@ export async function getCards(): Promise<Card[]> {
     .select('*')
     .order('created_at')
 
-  if (error) throw error
+  if (error) {
+    console.error('getCards error:', error.message)
+    return []
+  }
   return data as Card[]
 }
 

@@ -9,7 +9,10 @@ export async function getNotifications(): Promise<Notification[]> {
     .order('created_at', { ascending: false })
     .limit(50)
 
-  if (error) throw error
+  if (error) {
+    console.error('getNotifications error:', error.message)
+    return []
+  }
   return data as Notification[]
 }
 
@@ -20,6 +23,9 @@ export async function getUnreadCount(): Promise<number> {
     .select('*', { count: 'exact', head: true })
     .eq('is_read', false)
 
-  if (error) throw error
+  if (error) {
+    console.error('getUnreadCount error:', error.message)
+    return 0
+  }
   return count ?? 0
 }

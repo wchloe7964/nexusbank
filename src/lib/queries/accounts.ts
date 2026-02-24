@@ -9,7 +9,10 @@ export async function getAccounts(): Promise<Account[]> {
     .order('is_primary', { ascending: false })
     .order('account_type')
 
-  if (error) throw error
+  if (error) {
+    console.error('getAccounts error:', error.message)
+    return []
+  }
   return data as Account[]
 }
 

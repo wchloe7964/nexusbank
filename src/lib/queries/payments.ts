@@ -8,7 +8,20 @@ export async function getScheduledPayments(): Promise<ScheduledPayment[]> {
     .select('*, payee:payees(*), from_account:accounts(*)')
     .order('next_payment_date')
 
-  if (error) throw error
+  if (error) {
+    console.error('getScheduledPayments error:', error.message)
+    // Fallback: try without joins in case the relationship fails
+    const { data: fallbackData, error: fallbackError } = await supabase
+      .from('scheduled_payments')
+      .select('*')
+      .order('next_payment_date')
+
+    if (fallbackError) {
+      console.error('getScheduledPayments fallback error:', fallbackError.message)
+      return []
+    }
+    return (fallbackData ?? []) as ScheduledPayment[]
+  }
   return data as ScheduledPayment[]
 }
 

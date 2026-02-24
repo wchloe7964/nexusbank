@@ -16,6 +16,8 @@ import {
   MoreHorizontal,
   PiggyBank,
   Target,
+  ShieldAlert,
+  Gift,
 } from 'lucide-react'
 
 export const navigation = [
@@ -60,6 +62,11 @@ export const navigation = [
     icon: Target,
   },
   {
+    label: 'Rewards',
+    href: '/rewards',
+    icon: Gift,
+  },
+  {
     label: 'Insights',
     href: '/insights',
     icon: PieChart,
@@ -73,6 +80,11 @@ export const navigation = [
     label: 'Payees',
     href: '/payees',
     icon: Users,
+  },
+  {
+    label: 'Disputes',
+    href: '/disputes',
+    icon: ShieldAlert,
   },
   {
     label: 'Notifications',

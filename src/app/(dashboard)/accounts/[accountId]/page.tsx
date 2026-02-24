@@ -7,11 +7,12 @@ import { formatTransactionDate, formatUKDate } from '@/lib/utils/dates'
 import { formatSortCode } from '@/lib/utils/sort-code'
 import { formatAccountNumber } from '@/lib/utils/account-number'
 import { transactionCategories } from '@/lib/constants/categories'
-import { ArrowLeftRight, ArrowUpRight, ArrowDownLeft, Wallet } from 'lucide-react'
+import { ArrowLeftRight, ArrowUpRight, ArrowDownLeft, Wallet, Gauge, ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getAccountById } from '@/lib/queries/accounts'
 import { getRecentTransactions } from '@/lib/queries/transactions'
+import { AccountPreferencesDialog } from './account-preferences-dialog'
 
 const typeLabels: Record<string, string> = {
   current: 'Current',
@@ -46,14 +47,24 @@ export default async function AccountDetailPage({
   return (
     <div className="space-y-8">
       <PageHeader
-        title={account.account_name}
+        title={account.nickname || account.account_name}
         action={
-          <Link href="/transfers">
-            <Button size="sm">
-              <ArrowLeftRight className="mr-2 h-4 w-4" />
-              Transfer
-            </Button>
-          </Link>
+          <div className="flex items-center gap-2">
+            <AccountPreferencesDialog
+              accountId={account.id}
+              currentNickname={account.nickname}
+              currentColor={account.color ?? 'blue'}
+              currentIcon={account.icon ?? 'wallet'}
+              currentHidden={account.hide_from_dashboard ?? false}
+              accountName={account.account_name}
+            />
+            <Link href="/transfers">
+              <Button size="sm">
+                <ArrowLeftRight className="mr-2 h-4 w-4" />
+                Transfer
+              </Button>
+            </Link>
+          </div>
         }
       />
 
@@ -110,6 +121,30 @@ export default async function AccountDetailPage({
           </dl>
         </CardContent>
       </Card>
+
+      {/* Overdraft Manager Link */}
+      {account.overdraft_limit > 0 && (
+        <Link href="/accounts/overdraft" className="block">
+          <Card className="hover:border-primary/50 transition-colors">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="rounded-full bg-amber-500/10 p-2.5">
+                    <Gauge className="h-4 w-4 text-amber-500" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Overdraft Manager</p>
+                    <p className="text-xs text-muted-foreground">
+                      Limit: {formatGBP(account.overdraft_limit)} &middot; Monitor usage and costs
+                    </p>
+                  </div>
+                </div>
+                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
+      )}
 
       {/* Transactions */}
       <div>

@@ -54,6 +54,7 @@ export default async function DashboardPage() {
   const totalSpending = spendingByCategory.reduce((sum, item) => sum + item.total, 0)
 
   const totalBalance = accounts.reduce((sum, acc) => sum + Number(acc.balance), 0)
+  const visibleAccounts = accounts.filter((a) => !a.hide_from_dashboard)
   const firstName = profile.full_name?.split(' ')[0] ?? 'there'
   const greeting = getGreeting()
 
@@ -137,9 +138,9 @@ export default async function DashboardPage() {
             <h2 className="text-lg font-semibold">Your Accounts</h2>
             <Link href="/accounts" className="text-sm font-medium text-primary hover:underline underline-offset-4">View all</Link>
           </div>
-          {accounts.length > 0 ? (
+          {visibleAccounts.length > 0 ? (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {accounts.map((account) => (
+              {visibleAccounts.map((account) => (
                 <Link key={account.id} href={`/accounts/${account.id}`}>
                   <Card className="cursor-pointer hover:border-primary transition-colors">
                     <CardContent className="p-5">
@@ -148,7 +149,7 @@ export default async function DashboardPage() {
                           <div className="rounded-full bg-primary/[0.08] p-2">
                             <Wallet className="h-4 w-4 text-primary" />
                           </div>
-                          <span className="text-sm font-medium">{account.account_name}</span>
+                          <span className="text-sm font-medium">{account.nickname || account.account_name}</span>
                         </div>
                         <Badge variant={accountTypeVariants[account.account_type] ?? 'default'}>
                           {accountTypeLabels[account.account_type] ?? account.account_type}

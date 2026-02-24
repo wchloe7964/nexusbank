@@ -198,3 +198,73 @@ export const accountOpeningSchema = z.object({
   accountName: z.string().min(1, 'Account name is required').max(50),
   overdraftLimit: z.number().min(0).max(25000).default(0),
 })
+
+// ---------- Standing Orders ----------
+
+export const standingOrderSchema = z.object({
+  fromAccountId: z.string().min(1, 'Please select an account'),
+  payeeId: z.string().min(1, 'Please select a payee'),
+  amount: z.number().positive('Amount must be greater than 0').max(250000, 'Maximum is £250,000'),
+  reference: z.string().max(18).optional(),
+  frequency: z.enum(['weekly', 'fortnightly', 'monthly', 'quarterly', 'annually']),
+  nextPaymentDate: z.string().min(1, 'Please select a start date'),
+})
+
+// ---------- Overdraft ----------
+
+export const overdraftIncreaseSchema = z.object({
+  accountId: z.string().min(1, 'Please select an account'),
+  requestedLimit: z.number().positive('Limit must be greater than 0').max(25000, 'Maximum overdraft is £25,000'),
+  reason: z.string().max(500).optional(),
+})
+
+// ---------- Disputes ----------
+
+export const disputeSchema = z.object({
+  transactionId: z.string().min(1, 'Transaction is required'),
+  reason: z.enum(['unauthorized', 'duplicate', 'wrong_amount', 'not_received', 'defective', 'cancelled', 'other']),
+  description: z.string().max(1000).optional(),
+})
+
+// ---------- Rewards ----------
+
+export const redeemRewardsSchema = z.object({
+  amount: z.number().positive('Amount must be greater than 0'),
+  method: z.enum(['cash', 'charity']),
+  accountId: z.string().optional(),
+})
+
+// ---------- Account Preferences ----------
+
+export const accountPreferencesSchema = z.object({
+  nickname: z.string().max(30, 'Nickname must be 30 characters or less').optional().nullable(),
+  color: z.enum(['blue', 'green', 'purple', 'orange', 'pink', 'cyan', 'amber', 'red']).default('blue'),
+  icon: z.enum(['wallet', 'piggy-bank', 'briefcase', 'home', 'plane', 'car', 'graduation-cap', 'heart']).default('wallet'),
+  hideFromDashboard: z.boolean().default(false),
+})
+
+// ---------- Transaction Notes ----------
+
+export const transactionNoteSchema = z.object({
+  transactionId: z.string().min(1),
+  note: z.string().max(500, 'Note must be 500 characters or less').optional(),
+  tags: z.array(z.string().max(30)).max(10, 'Maximum 10 tags').default([]),
+})
+
+// ---------- Category Editing ----------
+
+export const categoryEditSchema = z.object({
+  transactionId: z.string().min(1),
+  category: z.enum(['transfer', 'salary', 'bills', 'groceries', 'shopping', 'transport', 'entertainment', 'dining', 'health', 'education', 'subscriptions', 'cash', 'other']),
+})
+
+// ---------- Spending Alerts ----------
+
+export const spendingAlertSchema = z.object({
+  name: z.string().min(1, 'Name is required').max(50),
+  alertType: z.enum(['single_transaction', 'category_monthly', 'balance_below', 'merchant_payment', 'large_incoming']),
+  accountId: z.string().optional().nullable(),
+  category: z.string().optional().nullable(),
+  merchantName: z.string().max(100).optional().nullable(),
+  thresholdAmount: z.number().positive('Threshold must be greater than 0').max(1000000),
+})

@@ -1,7 +1,7 @@
 import { PageHeader } from '@/components/shared/page-header'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Plus, Calendar, Building2, ChevronRight } from 'lucide-react'
+import { Plus, Calendar, Building2, CalendarClock, CalendarDays, ChevronRight } from 'lucide-react'
 import Link from 'next/link'
 import { getScheduledPayments } from '@/lib/queries/payments'
 import { PaymentsViewToggle } from './payments-view-toggle'
@@ -9,6 +9,7 @@ import { PaymentsViewToggle } from './payments-view-toggle'
 export default async function PaymentsPage() {
   const payments = await getScheduledPayments()
   const directDebitCount = payments.filter((p) => p.payment_type === 'direct_debit' && p.status !== 'cancelled').length
+  const standingOrderCount = payments.filter((p) => p.payment_type === 'standing_order' && p.status !== 'cancelled').length
 
   return (
     <div className="space-y-8">
@@ -26,26 +27,70 @@ export default async function PaymentsPage() {
       />
 
       {/* Quick Links */}
-      <Link href="/payments/direct-debits" className="block">
-        <Card className="hover:border-primary/50 transition-colors">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="rounded-full bg-orange-500/10 p-2.5">
-                  <Building2 className="h-4 w-4 text-orange-500" />
+      <div className="space-y-3">
+        <Link href="/payments/direct-debits" className="block">
+          <Card className="hover:border-primary/50 transition-colors">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="rounded-full bg-orange-500/10 p-2.5">
+                    <Building2 className="h-4 w-4 text-orange-500" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Manage Direct Debits</p>
+                    <p className="text-xs text-muted-foreground">
+                      {directDebitCount} active direct debit{directDebitCount !== 1 ? 's' : ''}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-medium">Manage Direct Debits</p>
-                  <p className="text-xs text-muted-foreground">
-                    {directDebitCount} active direct debit{directDebitCount !== 1 ? 's' : ''}
-                  </p>
-                </div>
+                <ChevronRight className="h-4 w-4 text-muted-foreground" />
               </div>
-              <ChevronRight className="h-4 w-4 text-muted-foreground" />
-            </div>
-          </CardContent>
-        </Card>
-      </Link>
+            </CardContent>
+          </Card>
+        </Link>
+
+        <Link href="/payments/standing-orders" className="block">
+          <Card className="hover:border-primary/50 transition-colors">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="rounded-full bg-purple-500/10 p-2.5">
+                    <CalendarClock className="h-4 w-4 text-purple-500" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Manage Standing Orders</p>
+                    <p className="text-xs text-muted-foreground">
+                      {standingOrderCount} active standing order{standingOrderCount !== 1 ? 's' : ''}
+                    </p>
+                  </div>
+                </div>
+                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
+
+        <Link href="/payments/calendar" className="block">
+          <Card className="hover:border-primary/50 transition-colors">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="rounded-full bg-teal-500/10 p-2.5">
+                    <CalendarDays className="h-4 w-4 text-teal-500" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Payment Calendar</p>
+                    <p className="text-xs text-muted-foreground">
+                      View all payments on a monthly calendar
+                    </p>
+                  </div>
+                </div>
+                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+              </div>
+            </CardContent>
+          </Card>
+        </Link>
+      </div>
 
       {payments.length === 0 ? (
         <Card>

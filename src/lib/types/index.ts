@@ -153,6 +153,7 @@ export interface Profile {
   notification_email: boolean
   notification_sms: boolean
   notification_push: boolean
+  rewards_balance: number
   theme_preference: 'light' | 'dark' | 'system'
   created_at: string
   updated_at: string
@@ -172,7 +173,21 @@ export interface Account {
   overdraft_limit: number
   is_primary: boolean
   is_active: boolean
+  nickname: string | null
+  color: string
+  icon: string
+  hide_from_dashboard: boolean
   opened_at: string
+  created_at: string
+  updated_at: string
+}
+
+export interface TransactionNote {
+  id: string
+  user_id: string
+  transaction_id: string
+  note: string | null
+  tags: string[]
   created_at: string
   updated_at: string
 }
@@ -191,9 +206,43 @@ export interface Transaction {
   counterparty_account_number: string | null
   balance_after: number | null
   transfer_reference: string | null
+  original_category: string | null
+  category_edited_at: string | null
   status: TransactionStatus
   transaction_date: string
   created_at: string
+  note?: TransactionNote | null
+}
+
+// Payment Calendar
+export interface CalendarPaymentDay {
+  date: string
+  payments: {
+    id: string
+    name: string
+    amount: number
+    type: 'standing_order' | 'direct_debit'
+    status: string
+  }[]
+}
+
+// Spending Alerts
+export type SpendingAlertType = 'single_transaction' | 'category_monthly' | 'balance_below' | 'merchant_payment' | 'large_incoming'
+
+export interface SpendingAlert {
+  id: string
+  user_id: string
+  name: string
+  alert_type: SpendingAlertType
+  account_id: string | null
+  category: string | null
+  merchant_name: string | null
+  threshold_amount: number
+  is_active: boolean
+  last_triggered_at: string | null
+  trigger_count: number
+  created_at: string
+  updated_at: string
 }
 
 export interface Card {
@@ -335,4 +384,75 @@ export interface SecurityScore {
     maxPoints: number
     achieved: boolean
   }[]
+}
+
+// Dispute types
+export type DisputeReason = 'unauthorized' | 'duplicate' | 'wrong_amount' | 'not_received' | 'defective' | 'cancelled' | 'other'
+export type DisputeStatus = 'submitted' | 'under_review' | 'information_requested' | 'resolved_refunded' | 'resolved_denied' | 'closed'
+
+export interface Dispute {
+  id: string
+  user_id: string
+  transaction_id: string
+  reason: DisputeReason
+  description: string | null
+  status: DisputeStatus
+  resolution: string | null
+  created_at: string
+  updated_at: string
+  transaction?: Transaction | null
+}
+
+// Reward types
+export type RewardType = 'cashback_dining' | 'cashback_shopping' | 'cashback_subscriptions' | 'cashback_other'
+export type RewardStatus = 'earned' | 'redeemed' | 'expired'
+
+export interface Reward {
+  id: string
+  user_id: string
+  transaction_id: string | null
+  amount: number
+  reward_type: RewardType
+  category: string
+  status: RewardStatus
+  redeemed_at: string | null
+  created_at: string
+}
+
+export interface RewardsSummary {
+  totalBalance: number
+  totalEarned: number
+  totalRedeemed: number
+  monthlyEarnings: { month: string; amount: number }[]
+  categoryBreakdown: { category: string; amount: number; count: number }[]
+}
+
+// Analytics types
+export interface MerchantSpending {
+  counterparty_name: string
+  total: number
+  count: number
+  category: string
+  lastDate: string
+}
+
+export interface DetectedSubscription {
+  counterparty_name: string
+  amount: number
+  frequency: 'monthly' | 'weekly' | 'annual'
+  category: string
+  lastDate: string
+  nextExpectedDate: string
+}
+
+export interface SpendingForecast {
+  date: string
+  actual: number | null
+  forecast: number
+}
+
+export interface PeerComparison {
+  category: string
+  userAmount: number
+  averageAmount: number
 }

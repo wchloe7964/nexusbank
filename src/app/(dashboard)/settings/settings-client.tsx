@@ -14,8 +14,9 @@ import { cn } from '@/lib/utils/cn'
 import {
   User, Shield, Bell, Smartphone, Mail, Eye, EyeOff, CheckCircle, AlertCircle,
   Loader2, Fingerprint, LogIn, LogOut, Key, ShieldAlert, XCircle, Monitor,
-  Tablet, Phone,
+  Tablet, Phone, ChevronRight, Zap,
 } from 'lucide-react'
+import Link from 'next/link'
 import { updateProfile, changePassword, updateNotificationPreferences, signOutAllDevices } from './actions'
 import { TwoFactorSetupDialog } from '@/components/two-factor/two-factor-setup-dialog'
 import { TwoFactorDisableDialog } from '@/components/two-factor/two-factor-disable-dialog'
@@ -617,6 +618,26 @@ export default function SettingsClient({ profile, loginActivity, securityScore }
                 </span>
               )}
             </div>
+
+            {/* Spending Alerts Link */}
+            <Link href="/settings/alerts" className="block">
+              <Card className="hover:border-primary/50 transition-colors">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="rounded-full bg-amber-500/10 p-2.5">
+                        <Zap className="h-4 w-4 text-amber-500" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium">Spending Alerts</p>
+                        <p className="text-xs text-muted-foreground">Set custom rules to monitor your spending</p>
+                      </div>
+                    </div>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
           </div>
         </TabsContent>
       </Tabs>

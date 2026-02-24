@@ -1,9 +1,10 @@
 import { PageHeader } from '@/components/shared/page-header'
 import { Card, CardContent } from '@/components/ui/card'
-import { PieChart } from 'lucide-react'
+import { PieChart, BarChart3, ChevronRight } from 'lucide-react'
 import { getSpendingByCategory, getDailySpending, getMonthlyComparison, getIncomeVsExpenses } from '@/lib/queries/transactions'
 import { getAccounts } from '@/lib/queries/accounts'
 import { InsightsClient } from './insights-client'
+import Link from 'next/link'
 
 export default async function InsightsPage() {
   const [categorySpending, dailySpending, monthlyComparison, incomeVsExpenses, accounts] = await Promise.all([
@@ -44,6 +45,28 @@ export default async function InsightsPage() {
           accounts={accounts}
         />
       )}
+
+      {/* Analytics Deep-Dive Link */}
+      <Link href="/insights/analytics" className="block">
+        <Card className="hover:border-primary/50 transition-colors">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="rounded-full bg-purple-500/10 p-2.5">
+                  <BarChart3 className="h-4 w-4 text-purple-500" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium">Spending Analytics</p>
+                  <p className="text-xs text-muted-foreground">
+                    Merchant rankings, subscription detection, spending forecasts &amp; peer comparison
+                  </p>
+                </div>
+              </div>
+              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+            </div>
+          </CardContent>
+        </Card>
+      </Link>
     </div>
   )
 }

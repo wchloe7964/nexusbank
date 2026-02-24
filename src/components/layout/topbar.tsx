@@ -4,12 +4,14 @@ import { Bell, Search } from 'lucide-react'
 import { ThemeToggle } from '@/components/shared/theme-toggle'
 import { Avatar } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
+import Link from 'next/link'
 
 interface TopbarProps {
   userName: string
+  unreadCount?: number
 }
 
-export function Topbar({ userName }: TopbarProps) {
+export function Topbar({ userName, unreadCount = 0 }: TopbarProps) {
   return (
     <header role="banner" className="flex h-16 items-center justify-between border-b border-border bg-card px-4 lg:px-6">
       {/* Mobile: user name centred */}
@@ -32,12 +34,21 @@ export function Topbar({ userName }: TopbarProps) {
       <div className="flex items-center gap-2">
         <ThemeToggle />
 
-        <Button variant="ghost" size="icon" className="relative" aria-label="Notifications — 3 unread">
-          <Bell className="h-[18px] w-[18px]" />
-          <span aria-hidden="true" className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-white">
-            3
-          </span>
-        </Button>
+        <Link href="/notifications">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="relative"
+            aria-label={unreadCount > 0 ? `Notifications — ${unreadCount} unread` : 'Notifications'}
+          >
+            <Bell className="h-[18px] w-[18px]" />
+            {unreadCount > 0 && (
+              <span aria-hidden="true" className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-white">
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            )}
+          </Button>
+        </Link>
 
         {/* Desktop: avatar on right */}
         <div className="hidden lg:block ml-1 pl-2 border-l border-border">

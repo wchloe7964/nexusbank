@@ -8,6 +8,8 @@ import {
   Bell,
   Settings,
   History,
+  PieChart,
+  FileDown,
   Home,
   Send,
   HelpCircle,
@@ -44,6 +46,16 @@ export const navigation = [
     label: 'Cards',
     href: '/cards',
     icon: CreditCard,
+  },
+  {
+    label: 'Insights',
+    href: '/insights',
+    icon: PieChart,
+  },
+  {
+    label: 'Statements',
+    href: '/statements',
+    icon: FileDown,
   },
   {
     label: 'Payees',

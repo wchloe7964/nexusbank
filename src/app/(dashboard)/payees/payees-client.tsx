@@ -7,7 +7,8 @@ import { Input } from '@/components/ui/input'
 import { Dialog } from '@/components/ui/dialog'
 import { formatSortCode } from '@/lib/utils/sort-code'
 import { maskAccountNumber } from '@/lib/utils/account-number'
-import { Search, Plus, Star, Trash2, User } from 'lucide-react'
+import { Search, Plus, Star, Trash2, User, Send } from 'lucide-react'
+import Link from 'next/link'
 import type { Payee } from '@/lib/types'
 import { addPayee, togglePayeeFavourite, deletePayee as deletePayeeAction } from './actions'
 
@@ -94,6 +95,11 @@ export function PayeesClient({ initialPayees }: PayeesClientProps) {
           </div>
         </div>
         <div className="flex items-center gap-1">
+          <Link href={`/payees/pay?id=${payee.id}`}>
+            <Button variant="ghost" size="sm" title="Pay this payee">
+              <Send className="h-4 w-4 text-primary" />
+            </Button>
+          </Link>
           <Button variant="ghost" size="sm" onClick={() => handleToggleFavourite(payee.id)} disabled={isPending}>
             <Star className={`h-4 w-4 ${payee.is_favourite ? 'fill-yellow-400 text-yellow-400' : 'text-muted-foreground'}`} />
           </Button>

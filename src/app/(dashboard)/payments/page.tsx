@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Plus, Calendar } from 'lucide-react'
 import Link from 'next/link'
 import { getScheduledPayments } from '@/lib/queries/payments'
-import { PaymentsClient } from './payments-client'
+import { PaymentsViewToggle } from './payments-view-toggle'
 
 export default async function PaymentsPage() {
   const payments = await getScheduledPayments()
@@ -37,7 +37,7 @@ export default async function PaymentsPage() {
           </CardContent>
         </Card>
       ) : (
-        <PaymentsClient initialPayments={payments} />
+        <PaymentsViewToggle initialPayments={payments} />
       )}
     </div>
   )

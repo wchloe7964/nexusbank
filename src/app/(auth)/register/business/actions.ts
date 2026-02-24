@@ -2,20 +2,43 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import type { BusinessEnrollmentData } from '@/lib/types'
+import type { BusinessEnrollmentData, EnrollmentResult } from '@/lib/types'
+
+function generateAccountNumber(): string {
+  return String(Math.floor(10000000 + Math.random() * 90000000))
+}
 
 function generateMembershipNumber(): string {
   // 12-digit number starting with 7 (business prefix)
   return '7' + String(Math.floor(10000000000 + Math.random() * 90000000000))
 }
 
-export async function enrollBusinessUser(data: BusinessEnrollmentData): Promise<{ error?: string; membershipNumber?: string }> {
+function generateSortCode(): string {
+  // NexusBank business sort codes start with 20
+  const part2 = String(Math.floor(10 + Math.random() * 90))
+  const part3 = String(Math.floor(10 + Math.random() * 90))
+  return `20-${part2}-${part3}`
+}
+
+function generateCardNumber(): string {
+  // 16-digit card number starting with 4 (Visa-style)
+  let num = '4539'
+  for (let i = 0; i < 12; i++) {
+    num += String(Math.floor(Math.random() * 10))
+  }
+  return num
+}
+
+export async function enrollBusinessUser(data: BusinessEnrollmentData): Promise<EnrollmentResult> {
   const supabase = await createClient()
   const admin = createAdminClient()
 
   const fullName = `${data.firstName} ${data.lastName}`
   const membershipNumber = generateMembershipNumber()
-  const sortCode = `${data.sortCode1}-${data.sortCode2}-${data.sortCode3}`
+  const sortCode = generateSortCode()
+  const accountNumber = generateAccountNumber()
+  const cardNumber = generateCardNumber()
+  const cardLast4 = cardNumber.slice(-4)
 
   // 1. Create auth user with membership number in metadata
   const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -27,8 +50,9 @@ export async function enrollBusinessUser(data: BusinessEnrollmentData): Promise<
         title: data.title,
         last_name: data.lastName.toLowerCase(),
         membership_number: membershipNumber,
+        card_number: cardNumber,
         sort_code: sortCode,
-        account_number: data.accountNumber,
+        account_number: accountNumber,
         business_name: data.businessName,
         account_type: 'business',
       },
@@ -40,7 +64,7 @@ export async function enrollBusinessUser(data: BusinessEnrollmentData): Promise<
 
   const userId = authData.user.id
 
-  // Auto-confirm email so user can sign in immediately (dev/demo convenience)
+  // Auto-confirm email so user can sign in immediately
   await admin.auth.admin.updateUserById(userId, { email_confirm: true })
 
   // 2. Update profile with enrollment data
@@ -62,6 +86,7 @@ export async function enrollBusinessUser(data: BusinessEnrollmentData): Promise<
       country: 'GB',
       notification_email: true,
       notification_sms: true,
+      membership_number: membershipNumber,
     })
     .eq('id', userId)
 
@@ -75,7 +100,7 @@ export async function enrollBusinessUser(data: BusinessEnrollmentData): Promise<
     account_name: `${data.businessName} – Business Account`,
     account_type: 'business',
     sort_code: sortCode,
-    account_number: data.accountNumber,
+    account_number: accountNumber,
     balance: 0,
     available_balance: 0,
     currency_code: 'GBP',
@@ -90,7 +115,41 @@ export async function enrollBusinessUser(data: BusinessEnrollmentData): Promise<
     return { error: 'Account was created but we had trouble setting up your business account. Please contact support.' }
   }
 
-  // 4. Create a welcome notification
+  // 4. Create a debit card
+  const { data: accountData } = await admin
+    .from('accounts')
+    .select('id')
+    .eq('user_id', userId)
+    .single()
+
+  if (accountData) {
+    await admin.from('cards').insert({
+      account_id: accountData.id,
+      user_id: userId,
+      card_type: 'debit',
+      card_number_last_four: cardLast4,
+      card_holder_name: fullName.toUpperCase(),
+      expiry_date: `${String(new Date().getMonth() + 1).padStart(2, '0')}/${String(new Date().getFullYear() + 4).slice(-2)}`,
+      status: 'active',
+    })
+  }
+
+  // 5. Store all login identifiers in user_metadata
+  await admin.auth.admin.updateUserById(userId, {
+    user_metadata: {
+      full_name: fullName,
+      title: data.title,
+      last_name: data.lastName.toLowerCase(),
+      membership_number: membershipNumber,
+      card_number: cardNumber,
+      card_last4: cardLast4,
+      sort_code: sortCode,
+      account_number: accountNumber,
+      business_name: data.businessName,
+    },
+  })
+
+  // 6. Create a welcome notification
   await admin.from('notifications').insert({
     user_id: userId,
     title: 'Welcome to NexusBank Business Banking',
@@ -99,5 +158,5 @@ export async function enrollBusinessUser(data: BusinessEnrollmentData): Promise<
     is_read: false,
   })
 
-  return { membershipNumber }
+  return { membershipNumber, sortCode, accountNumber, cardLast4 }
 }

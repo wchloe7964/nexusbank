@@ -19,21 +19,14 @@ export type SavingsGoal =
   | 'retirement'
   | 'other'
 
-export type RegistrationAccountType = 'current_savings' | 'mortgage' | 'merchant'
-
 export interface EnrollmentData {
   // Step 1 — Your Details
+  firstName: string
   lastName: string
   dobDay: string
   dobMonth: string
   dobYear: string
   postcode: string
-  // Account details
-  registrationAccountType: RegistrationAccountType | ''
-  sortCode1: string
-  sortCode2: string
-  sortCode3: string
-  cardNumber: string
   // Contact details
   email: string
   confirmEmail: string
@@ -44,6 +37,14 @@ export interface EnrollmentData {
   confirmPassword: string
   acceptTerms: boolean
   acceptPrivacyPolicy: boolean
+}
+
+export interface EnrollmentResult {
+  error?: string
+  membershipNumber?: string
+  sortCode?: string
+  accountNumber?: string
+  cardLast4?: string
 }
 
 export type BusinessRelationship =
@@ -68,16 +69,10 @@ export interface BusinessEnrollmentData {
   dobMonth: string
   dobYear: string
   postcode: string
-  debitCardNumber: string
-  barclaycardNumber: string
   email: string
   confirmEmail: string
   // Your business
   businessName: string
-  accountNumber: string
-  sortCode1: string
-  sortCode2: string
-  sortCode3: string
   businessContactNumber: string
   membershipType: MembershipType | ''
   businessRelationship: BusinessRelationship | ''

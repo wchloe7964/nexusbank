@@ -2,17 +2,20 @@
 
 import { useState, useCallback } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { enrollBusinessUser } from './actions'
+import { signInAfterRegistration } from '../actions'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select } from '@/components/ui/select'
-import { Check, AlertCircle, ArrowRight, ArrowLeft, Eye, EyeOff, Building2, Copy } from 'lucide-react'
+import { Card, CardContent } from '@/components/ui/card'
+import { Check, AlertCircle, ArrowRight, ArrowLeft, Eye, EyeOff, Building2, Copy, CheckCircle, CreditCard, AlertTriangle } from 'lucide-react'
 import { CookiePreferencesModal } from '@/components/shared/cookie-preferences-modal'
 import {
   businessStep1Schema,
   businessStep3Schema,
 } from '@/lib/utils/validation'
-import type { BusinessEnrollmentData } from '@/lib/types'
+import type { BusinessEnrollmentData, EnrollmentResult } from '@/lib/types'
 
 const INITIAL_DATA: BusinessEnrollmentData = {
   title: '',
@@ -22,15 +25,9 @@ const INITIAL_DATA: BusinessEnrollmentData = {
   dobMonth: '',
   dobYear: '',
   postcode: '',
-  debitCardNumber: '',
-  barclaycardNumber: '',
   email: '',
   confirmEmail: '',
   businessName: '',
-  accountNumber: '',
-  sortCode1: '',
-  sortCode2: '',
-  sortCode3: '',
   businessContactNumber: '',
   membershipType: '',
   businessRelationship: '',
@@ -84,17 +81,55 @@ const RELATIONSHIP_OPTIONS: { value: string; label: string }[] = [
   { value: 'company-secretary', label: 'A company secretary of' },
 ]
 
+function CopyableField({ label, value }: { label: string; value: string }) {
+  const [copied, setCopied] = useState(false)
+  function copy() {
+    navigator.clipboard.writeText(value)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+  return (
+    <div className="flex items-center justify-between py-3 border-b border-border/40 last:border-b-0">
+      <div>
+        <p className="text-xs text-muted-foreground">{label}</p>
+        <p className="text-sm font-semibold text-foreground font-mono tracking-wider">{value}</p>
+      </div>
+      <button
+        type="button"
+        onClick={copy}
+        className="flex items-center gap-1.5 rounded-md border border-border px-2.5 py-1.5 text-xs text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+        aria-label={`Copy ${label}`}
+      >
+        {copied ? (
+          <>
+            <Check className="h-3 w-3 text-green-600" />
+            <span className="text-green-600">Copied</span>
+          </>
+        ) : (
+          <>
+            <Copy className="h-3 w-3" />
+            <span>Copy</span>
+          </>
+        )}
+      </button>
+    </div>
+  )
+}
+
 export default function BusinessRegisterPage() {
+  const router = useRouter()
   const [step, setStep] = useState<Step>(1)
   const [data, setData] = useState<BusinessEnrollmentData>(INITIAL_DATA)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
-  const [membershipNumber, setMembershipNumber] = useState<string | undefined>(undefined)
+  const [enrollmentResult, setEnrollmentResult] = useState<EnrollmentResult | undefined>(undefined)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [copied, setCopied] = useState(false)
+  const [autoLoginLoading, setAutoLoginLoading] = useState(false)
+  const [autoLoginError, setAutoLoginError] = useState<string | null>(null)
   const [cookieModalOpen, setCookieModalOpen] = useState(false)
+
   const updateData = useCallback((updates: Partial<BusinessEnrollmentData>) => {
     setData((prev) => ({ ...prev, ...updates }))
   }, [])
@@ -156,17 +191,21 @@ export default function BusinessRegisterPage() {
       setSubmitError(result.error)
       setLoading(false)
     } else {
-      setMembershipNumber(result.membershipNumber)
+      setEnrollmentResult(result)
       setStep('success')
       window.scrollTo({ top: 0, behavior: 'smooth' })
     }
   }, [data, validateStep])
 
-  function copyMembership() {
-    if (membershipNumber) {
-      navigator.clipboard.writeText(membershipNumber)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
+  async function handleGoToDashboard() {
+    setAutoLoginLoading(true)
+    setAutoLoginError(null)
+    const res = await signInAfterRegistration(data.email)
+    if (res.error) {
+      setAutoLoginError(res.error)
+      setAutoLoginLoading(false)
+    } else {
+      router.push('/dashboard')
     }
   }
 
@@ -214,52 +253,97 @@ export default function BusinessRegisterPage() {
   if (step === 'success') {
     return (
       <div className="space-y-6">
-        <div className="rounded-xl border border-border bg-white dark:bg-card shadow-sm overflow-hidden">
-          <div className="p-8 text-center space-y-4">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
-              <Check className="h-7 w-7 text-green-600 dark:text-green-400" />
-            </div>
-            <h1 className="text-2xl font-bold text-foreground">Registration Complete</h1>
-            <p className="text-sm text-muted-foreground max-w-md mx-auto">
-              Your NexusBank Business Online Banking account has been created.
+        <div className="flex flex-col items-center text-center">
+          <div className="rounded-lg bg-emerald-50 dark:bg-emerald-950/30 p-4 mb-4">
+            <CheckCircle className="h-10 w-10 text-success" />
+          </div>
+          <h2 className="text-2xl font-bold tracking-tight">Registration complete</h2>
+          <p className="mt-2 text-sm text-muted-foreground max-w-md">
+            Welcome to NexusBank Business Banking, {data.firstName}! Your account for {data.businessName} has been created.
+          </p>
+        </div>
+
+        {/* Important save notice */}
+        <div className="flex items-start gap-3 rounded-lg border border-amber-200/80 dark:border-amber-800/40 bg-amber-50/80 dark:bg-amber-950/20 p-4">
+          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400" />
+          <div>
+            <p className="text-sm font-semibold text-amber-800 dark:text-amber-200">
+              Save your account details
+            </p>
+            <p className="text-xs text-amber-700 dark:text-amber-300 mt-0.5 leading-relaxed">
+              You&apos;ll need these details to log in. Copy them now or take a screenshot — we&apos;ve also sent them to your email.
             </p>
           </div>
         </div>
 
-        {membershipNumber && (
-          <div className="rounded-xl border border-primary/30 bg-primary/[0.03] shadow-sm overflow-hidden">
-            <div className="p-6 text-center space-y-3">
-              <p className="text-sm font-semibold text-foreground">Your Membership Number</p>
-              <div className="flex items-center justify-center gap-3">
-                <span className="text-2xl font-mono font-bold tracking-widest text-primary">
-                  {membershipNumber}
-                </span>
-                <button
-                  type="button"
-                  onClick={copyMembership}
-                  className="text-muted-foreground hover:text-foreground transition-colors"
-                  aria-label="Copy membership number"
-                >
-                  {copied ? <Check className="h-4 w-4 text-green-600" /> : <Copy className="h-4 w-4" />}
-                </button>
-              </div>
-              <p className="text-xs text-muted-foreground leading-relaxed max-w-sm mx-auto">
-                Keep this number safe — you&apos;ll use it to log in to Online Banking.
-                We&apos;ve also sent it to your email address.
-              </p>
+        {/* All credentials */}
+        <Card className="border-primary/30 bg-primary/[0.02]">
+          <CardContent className="p-6">
+            <h3 className="text-sm font-semibold text-foreground mb-1">Your account details</h3>
+            <p className="text-xs text-muted-foreground mb-4">Use any of these to log in alongside your last name.</p>
+
+            <div className="space-y-0">
+              {enrollmentResult?.membershipNumber && (
+                <CopyableField label="Membership number" value={enrollmentResult.membershipNumber} />
+              )}
+              {enrollmentResult?.sortCode && (
+                <CopyableField label="Sort code" value={enrollmentResult.sortCode} />
+              )}
+              {enrollmentResult?.accountNumber && (
+                <CopyableField label="Account number" value={enrollmentResult.accountNumber} />
+              )}
+              {enrollmentResult?.cardLast4 && (
+                <div className="flex items-center justify-between py-3">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Debit card</p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <CreditCard className="h-4 w-4 text-muted-foreground" />
+                      <p className="text-sm font-semibold text-foreground font-mono tracking-wider">
+                        **** **** **** {enrollmentResult.cardLast4}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
-          </div>
+          </CardContent>
+        </Card>
+
+        {/* How to log in */}
+        <Card>
+          <CardContent className="p-6 space-y-3">
+            <h3 className="text-sm font-semibold text-foreground">How to log in</h3>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              You can log in using your <strong>last name</strong> plus any one of:
+            </p>
+            <ul className="space-y-1.5 text-xs text-muted-foreground">
+              <li className="flex items-center gap-2">
+                <Check className="h-3 w-3 text-primary shrink-0" />
+                Your 12-digit membership number
+              </li>
+              <li className="flex items-center gap-2">
+                <Check className="h-3 w-3 text-primary shrink-0" />
+                Your 16-digit card number
+              </li>
+              <li className="flex items-center gap-2">
+                <Check className="h-3 w-3 text-primary shrink-0" />
+                Your sort code and account number
+              </li>
+            </ul>
+          </CardContent>
+        </Card>
+
+        {autoLoginError && (
+          <p className="text-xs text-center text-destructive">{autoLoginError}</p>
         )}
 
-        <div className="flex gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <Button className="flex-1" onClick={handleGoToDashboard} loading={autoLoginLoading}>
+            Go to Dashboard
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </Button>
           <Link href="/login" className="flex-1">
-            <Button className="w-full gap-2">
-              Go to Log in
-              <ArrowRight className="h-4 w-4" />
-            </Button>
-          </Link>
-          <Link href="/" className="flex-1">
-            <Button variant="outline" className="w-full">Back to Home</Button>
+            <Button variant="outline" className="w-full">Go to Login</Button>
           </Link>
         </div>
       </div>
@@ -301,10 +385,7 @@ export default function BusinessRegisterPage() {
               {/* Intro text */}
               <div className="rounded-lg bg-accent border border-border/40 p-4">
                 <p className="text-xs text-muted-foreground leading-relaxed">
-                  If your business requires 2 or more people to authorise payments, or you have third
-                  party access to the account, you&apos;ll be given &apos;Limited view/view only&apos;
-                  access to the Online Banking service. Please enter your details here and press
-                  &quot;Next&quot; below.
+                  We&apos;ll automatically generate your business account number, sort code, and debit card once you complete registration.
                 </p>
                 <p className="text-xs text-muted-foreground mt-2">
                   <span className="text-destructive">*</span> All starred fields are mandatory.
@@ -362,7 +443,7 @@ export default function BusinessRegisterPage() {
                   )}
                 </div>
 
-                {/* Date of birth — dropdowns matching the content */}
+                {/* Date of birth */}
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium text-foreground">
                     Date of birth <span className="text-destructive">*</span>
@@ -428,41 +509,7 @@ export default function BusinessRegisterPage() {
                   )}
                 </div>
 
-                {/* Debit card / cash card number */}
-                <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-foreground">
-                    Debit card / cash card number
-                  </label>
-                  <Input
-                    placeholder="16-digit card number"
-                    inputMode="numeric"
-                    maxLength={19}
-                    value={data.debitCardNumber.replace(/(.{4})/g, '$1 ').trim()}
-                    onChange={(e) => updateData({
-                      debitCardNumber: e.target.value.replace(/\D/g, '').slice(0, 16),
-                    })}
-                    className="max-w-[280px]"
-                  />
-                </div>
-
-                {/* NexusCard number */}
-                <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-foreground">
-                    NexusCard number
-                  </label>
-                  <Input
-                    placeholder="NexusCard number"
-                    inputMode="numeric"
-                    maxLength={19}
-                    value={data.barclaycardNumber.replace(/(.{4})/g, '$1 ').trim()}
-                    onChange={(e) => updateData({
-                      barclaycardNumber: e.target.value.replace(/\D/g, '').slice(0, 16),
-                    })}
-                    className="max-w-[280px]"
-                  />
-                </div>
-
-                {/* Preferred email address */}
+                {/* Email */}
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium text-foreground">
                     Preferred email address <span className="text-destructive">*</span>
@@ -479,7 +526,7 @@ export default function BusinessRegisterPage() {
                   )}
                 </div>
 
-                {/* Re-enter preferred email address */}
+                {/* Confirm email */}
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium text-foreground">
                     Re-enter preferred email address <span className="text-destructive">*</span>
@@ -518,58 +565,6 @@ export default function BusinessRegisterPage() {
                   )}
                 </div>
 
-                {/* Account number */}
-                <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-foreground">
-                    Account number <span className="text-destructive">*</span>
-                  </label>
-                  <Input
-                    placeholder="8-digit account number"
-                    maxLength={8}
-                    inputMode="numeric"
-                    value={data.accountNumber}
-                    onChange={(e) => updateData({ accountNumber: e.target.value.replace(/\D/g, '').slice(0, 8) })}
-                    className="max-w-[200px]"
-                  />
-                  {errors.accountNumber && (
-                    <p className="text-xs text-destructive">{errors.accountNumber}</p>
-                  )}
-                </div>
-
-                {/* Sort code */}
-                <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-foreground">
-                    Sort code <span className="text-destructive">*</span>
-                  </label>
-                  <div className="flex items-center gap-2 max-w-[220px]">
-                    {(['sortCode1', 'sortCode2', 'sortCode3'] as const).map((field, idx) => (
-                      <div key={field} className="flex items-center gap-2">
-                        {idx > 0 && <span className="text-muted-foreground font-medium">-</span>}
-                        <Input
-                          placeholder="00"
-                          maxLength={2}
-                          inputMode="numeric"
-                          value={data[field]}
-                          onChange={(e) => {
-                            const val = e.target.value.replace(/\D/g, '').slice(0, 2)
-                            updateData({ [field]: val })
-                            if (val.length === 2 && idx < 2) {
-                              const nextField = `sortCode${idx + 2}`
-                              document.querySelector<HTMLInputElement>(`[data-bsc="${nextField}"]`)?.focus()
-                            }
-                          }}
-                          data-bsc={field}
-                          className="text-center w-14"
-                          aria-label={`Sort code part ${idx + 1}`}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                  {(errors.sortCode1 || errors.sortCode2 || errors.sortCode3) && (
-                    <p className="text-xs text-destructive">Please enter your full sort code</p>
-                  )}
-                </div>
-
                 {/* Business contact number */}
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium text-foreground">
@@ -603,12 +598,6 @@ export default function BusinessRegisterPage() {
                   {errors.membershipType && (
                     <p className="text-xs text-destructive">{errors.membershipType}</p>
                   )}
-                  <p className="text-[11px] text-muted-foreground leading-relaxed">
-                    Please note, whether you&apos;re applying for a business only registration or a
-                    business and personal registration, we&apos;ll include all NexusBank accounts that
-                    you have a relationship with. If you wish to exclude certain accounts from your
-                    membership, please call us on 0345 605 2345.
-                  </p>
                 </div>
 
                 {/* Business relationship */}
@@ -632,19 +621,17 @@ export default function BusinessRegisterPage() {
                 </div>
 
                 {/* Authorised access */}
-                <div className="space-y-1.5">
-                  <label className="flex items-start gap-3 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={data.hasAuthorisedAccess}
-                      onChange={(e) => updateData({ hasAuthorisedAccess: e.target.checked })}
-                      className="mt-0.5 h-4 w-4 rounded border-border accent-primary"
-                    />
-                    <span className="text-sm text-foreground">
-                      Is anyone else authorised to access this account?
-                    </span>
-                  </label>
-                </div>
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={data.hasAuthorisedAccess}
+                    onChange={(e) => updateData({ hasAuthorisedAccess: e.target.checked })}
+                    className="mt-0.5 h-4 w-4 rounded border-border accent-primary"
+                  />
+                  <span className="text-sm text-foreground">
+                    Is anyone else authorised to access this account?
+                  </span>
+                </label>
               </section>
 
               {/* ── Your address history ── */}
@@ -652,11 +639,7 @@ export default function BusinessRegisterPage() {
                 <h3 className="text-sm font-semibold text-foreground border-b border-border/40 pb-2">
                   Your address history
                 </h3>
-                <p className="text-xs text-muted-foreground">
-                  Please provide details of the addresses you have lived in for the last 3 years.
-                </p>
 
-                {/* House/flat */}
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium text-foreground">
                     House/flat name and no. <span className="text-destructive">*</span>
@@ -671,7 +654,6 @@ export default function BusinessRegisterPage() {
                   )}
                 </div>
 
-                {/* Street */}
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium text-foreground">
                     Street <span className="text-destructive">*</span>
@@ -686,7 +668,6 @@ export default function BusinessRegisterPage() {
                   )}
                 </div>
 
-                {/* District */}
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium text-foreground">District</label>
                   <Input
@@ -696,7 +677,6 @@ export default function BusinessRegisterPage() {
                   />
                 </div>
 
-                {/* Town/city */}
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium text-foreground">
                     Town/city <span className="text-destructive">*</span>
@@ -711,7 +691,6 @@ export default function BusinessRegisterPage() {
                   )}
                 </div>
 
-                {/* County */}
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium text-foreground">County</label>
                   <Input
@@ -721,7 +700,6 @@ export default function BusinessRegisterPage() {
                   />
                 </div>
 
-                {/* Postcode */}
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium text-foreground">
                     Postcode <span className="text-destructive">*</span>
@@ -737,7 +715,6 @@ export default function BusinessRegisterPage() {
                   )}
                 </div>
 
-                {/* When did you move */}
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium text-foreground">
                     When did you move to your residential address? <span className="text-destructive">*</span>
@@ -788,7 +765,6 @@ export default function BusinessRegisterPage() {
                 </Button>
               </div>
 
-              {/* Cookie Policy */}
               <div className="flex justify-center pt-4">
                 <button
                   type="button"
@@ -800,7 +776,6 @@ export default function BusinessRegisterPage() {
               </div>
             </div>
           </div>
-
         </div>
       )}
 
@@ -853,14 +828,6 @@ export default function BusinessRegisterPage() {
                   <dd className="font-medium text-foreground">{data.businessName}</dd>
                 </div>
                 <div className="flex justify-between py-1.5 border-b border-border/20">
-                  <dt className="text-muted-foreground">Account number</dt>
-                  <dd className="font-medium text-foreground font-mono">{data.accountNumber}</dd>
-                </div>
-                <div className="flex justify-between py-1.5 border-b border-border/20">
-                  <dt className="text-muted-foreground">Sort code</dt>
-                  <dd className="font-medium text-foreground font-mono">{data.sortCode1}-{data.sortCode2}-{data.sortCode3}</dd>
-                </div>
-                <div className="flex justify-between py-1.5 border-b border-border/20">
                   <dt className="text-muted-foreground">Contact number</dt>
                   <dd className="font-medium text-foreground">{data.businessContactNumber}</dd>
                 </div>
@@ -871,7 +838,7 @@ export default function BusinessRegisterPage() {
                 <div className="flex justify-between py-1.5 border-b border-border/20">
                   <dt className="text-muted-foreground">Business relationship</dt>
                   <dd className="font-medium text-foreground">
-                    {RELATIONSHIP_OPTIONS.find((o) => o.value === data.businessRelationship)?.label || '—'}
+                    {RELATIONSHIP_OPTIONS.find((o) => o.value === data.businessRelationship)?.label || '\u2014'}
                   </dd>
                 </div>
               </dl>
@@ -894,7 +861,7 @@ export default function BusinessRegisterPage() {
                   <dd className="font-medium text-foreground">
                     {data.moveMonth && data.moveYear
                       ? `${MONTH_NAMES[parseInt(data.moveMonth, 10) - 1]} ${data.moveYear}`
-                      : '—'}
+                      : '\u2014'}
                   </dd>
                 </div>
               </dl>
@@ -902,8 +869,7 @@ export default function BusinessRegisterPage() {
 
             <div className="rounded-lg bg-accent border border-border/40 p-4">
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Please check your details carefully. If anything is incorrect, go back and make
-                changes before continuing.
+                Once you complete registration, we&apos;ll automatically create your business account and generate your membership number, sort code, account number, and debit card details.
               </p>
             </div>
 

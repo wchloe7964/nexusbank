@@ -58,18 +58,12 @@ const ukPostcodeRegex = /^[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}$/i
 
 // Step 1 — Your Details
 export const enrollmentStep1Schema = z.object({
+  firstName: z.string().min(1, 'First name is required').max(50),
   lastName: z.string().min(2, 'Last name must be at least 2 characters').max(50),
   dobDay: z.string().min(1, 'Day is required').max(2),
   dobMonth: z.string().min(1, 'Month is required').max(2),
   dobYear: z.string().length(4, 'Year is required'),
   postcode: z.string().regex(ukPostcodeRegex, 'Please enter a valid UK postcode'),
-  registrationAccountType: z.enum(['current_savings', 'mortgage', 'merchant'], {
-    message: 'Please select an account type',
-  }),
-  sortCode1: z.string().regex(/^\d{2}$/, 'Required'),
-  sortCode2: z.string().regex(/^\d{2}$/, 'Required'),
-  sortCode3: z.string().regex(/^\d{2}$/, 'Required'),
-  cardNumber: z.string().min(16, 'Please enter your 16-digit card number').max(16),
   email: z.string().email('Please enter a valid email address'),
   confirmEmail: z.string().email('Please confirm your email address'),
 }).refine((data) => data.email === data.confirmEmail, {
@@ -125,10 +119,6 @@ export const businessStep1Schema = z.object({
   confirmEmail: z.string().email('Please confirm your email address'),
   // Business details
   businessName: z.string().min(1, 'Business name is required').max(200),
-  accountNumber: z.string().regex(/^\d{8}$/, 'Account number must be 8 digits'),
-  sortCode1: z.string().regex(/^\d{2}$/, 'Required'),
-  sortCode2: z.string().regex(/^\d{2}$/, 'Required'),
-  sortCode3: z.string().regex(/^\d{2}$/, 'Required'),
   businessContactNumber: z.string().min(1, 'Business contact number is required'),
   membershipType: z.enum(['business-only', 'business-and-personal'], {
     message: 'Please select a membership type',

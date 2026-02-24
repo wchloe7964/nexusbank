@@ -15,25 +15,20 @@ import {
   Eye,
   EyeOff,
   Shield,
-  CircleHelp,
 } from 'lucide-react'
 import {
   enrollmentStep1Schema,
   enrollmentStep3Schema_personal,
 } from '@/lib/utils/validation'
-import type { EnrollmentData, RegistrationAccountType } from '@/lib/types'
+import type { EnrollmentData, EnrollmentResult } from '@/lib/types'
 
 const INITIAL_DATA: EnrollmentData = {
+  firstName: '',
   lastName: '',
   dobDay: '',
   dobMonth: '',
   dobYear: '',
   postcode: '',
-  registrationAccountType: '',
-  sortCode1: '',
-  sortCode2: '',
-  sortCode3: '',
-  cardNumber: '',
   email: '',
   confirmEmail: '',
   marketingOptOut: false,
@@ -45,43 +40,15 @@ const INITIAL_DATA: EnrollmentData = {
 
 type Step = 'welcome' | 1 | 2 | 3 | 'success'
 
-const ACCOUNT_TYPE_OPTIONS: {
-  id: RegistrationAccountType
-  label: string
-  description: string
-}[] = [
-  {
-    id: 'current_savings',
-    label: 'Current or savings account',
-    description:
-      'You can also use this option if you have a mortgage and a current account or savings account with us.',
-  },
-  {
-    id: 'mortgage',
-    label: 'Mortgage account',
-    description:
-      'Use this if you only have a mortgage with us and no other accounts.',
-  },
-  {
-    id: 'merchant',
-    label: 'Merchant',
-    description: 'Use this if you have a merchant services account with us.',
-  },
-]
-
 export default function RegisterPage() {
   const [step, setStep] = useState<Step>('welcome')
   const [data, setData] = useState<EnrollmentData>({ ...INITIAL_DATA })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
-  const [membershipNumber, setMembershipNumber] = useState<string | undefined>(
-    undefined
-  )
+  const [enrollmentResult, setEnrollmentResult] = useState<EnrollmentResult | undefined>(undefined)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [showSortCodeTooltip, setShowSortCodeTooltip] = useState(false)
-  const [showCardTooltip, setShowCardTooltip] = useState(false)
 
   const updateData = useCallback((updates: Partial<EnrollmentData>) => {
     setData((prev) => ({ ...prev, ...updates }))
@@ -123,7 +90,6 @@ export default function RegisterPage() {
   const goNext = useCallback(() => {
     if (typeof step !== 'number') return
     if (step === 2) {
-      // Review step — no validation needed
       setStep(3)
       setErrors({})
       window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -154,7 +120,7 @@ export default function RegisterPage() {
       setSubmitError(result.error)
       setLoading(false)
     } else {
-      setMembershipNumber(result.membershipNumber)
+      setEnrollmentResult(result)
       setStep('success')
       window.scrollTo({ top: 0, behavior: 'smooth' })
     }
@@ -162,14 +128,13 @@ export default function RegisterPage() {
 
   // ── Success screen ──
   if (step === 'success') {
-    return <EnrollmentSuccess data={data} membershipNumber={membershipNumber} />
+    return <EnrollmentSuccess data={data} result={enrollmentResult} />
   }
 
-  // ── Welcome / Onboarding screen (Screen 1) ──
+  // ── Welcome / Onboarding screen ──
   if (step === 'welcome') {
     return (
       <div className="space-y-6">
-        {/* Page heading */}
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground">
             Register for Online Banking
@@ -179,7 +144,6 @@ export default function RegisterPage() {
           </p>
         </div>
 
-        {/* Main info card */}
         <div className="rounded-xl border border-border bg-white dark:bg-card shadow-sm overflow-hidden">
           <div className="border-b border-border/60 px-6 py-4">
             <h2 className="text-sm font-semibold text-foreground">
@@ -188,7 +152,6 @@ export default function RegisterPage() {
           </div>
 
           <div className="p-6 space-y-6">
-            {/* Who can register */}
             <div>
               <h3 className="text-sm font-semibold text-foreground">
                 Who can register?
@@ -200,7 +163,7 @@ export default function RegisterPage() {
                 {[
                   'Live in the UK',
                   'Be aged 16 or over',
-                  'Have either a NexusBank current account with a bank card, a savings account or a mortgage, or be a merchant customer',
+                  'Have a valid email address',
                 ].map((item) => (
                   <li
                     key={item}
@@ -213,23 +176,23 @@ export default function RegisterPage() {
               </ul>
             </div>
 
-            {/* What happens after */}
             <div className="border-t border-border/40 pt-5">
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                Once you&apos;re registered, you&apos;ll be able to see and
-                manage all of your NexusBank accounts in Online Banking, except
-                for those that need someone else&apos;s signature.
+              <h3 className="text-sm font-semibold text-foreground">
+                What you&apos;ll get
+              </h3>
+              <p className="mt-2 text-sm text-muted-foreground leading-relaxed">
+                We&apos;ll automatically create your current account, generate
+                your membership number, sort code, account number, and debit
+                card — everything you need to start banking.
               </p>
             </div>
 
-            {/* Business callout */}
             <div className="rounded-lg bg-accent border border-border/40 p-4">
               <h3 className="text-sm font-semibold text-foreground">
                 Are you a business customer?
               </h3>
               <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
-                If you have a business savings or current account with us,
-                please{' '}
+                If you need a business account, please{' '}
                 <Link
                   href="/register/business"
                   target="_blank"
@@ -241,7 +204,6 @@ export default function RegisterPage() {
               </p>
             </div>
 
-            {/* Navigation note */}
             <p className="text-[11px] text-muted-foreground/60 leading-relaxed">
               To move to the next step or go back, use the navigation buttons at
               the bottom of each page. Don&apos;t use your web browser&apos;s
@@ -251,7 +213,6 @@ export default function RegisterPage() {
           </div>
         </div>
 
-        {/* Action buttons */}
         <div className="flex gap-3">
           <Link href="/login" className="flex-1">
             <Button variant="outline" className="w-full h-11">
@@ -283,7 +244,6 @@ export default function RegisterPage() {
 
   return (
     <div className="space-y-6">
-      {/* Page heading */}
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-foreground">
           Register for Online Banking
@@ -293,10 +253,8 @@ export default function RegisterPage() {
         </p>
       </div>
 
-      {/* Progress header */}
       <ProgressHeader currentStep={currentStepNum} />
 
-      {/* Submit-level error */}
       {submitError && (
         <div className="flex items-start gap-3 rounded-lg border border-destructive/20 bg-destructive/5 p-4 text-sm text-destructive">
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
@@ -304,7 +262,6 @@ export default function RegisterPage() {
         </div>
       )}
 
-      {/* Step content card */}
       <div className="rounded-xl border border-border bg-white dark:bg-card shadow-sm overflow-hidden">
         <div className="border-b border-border/60 px-6 py-4">
           <h2 className="text-sm font-semibold text-foreground">
@@ -319,11 +276,34 @@ export default function RegisterPage() {
           {/* ══════════════════════════════════════════════ */}
           {step === 1 && (
             <div className="space-y-8">
-              {/* ── Your details ── */}
               <section className="space-y-5">
                 <h3 className="text-sm font-semibold text-foreground border-b border-border/40 pb-2">
                   Your details
                 </h3>
+
+                {/* First name */}
+                <div className="space-y-1.5">
+                  <label
+                    htmlFor="firstName"
+                    className="text-sm font-medium text-foreground"
+                  >
+                    First name
+                  </label>
+                  <Input
+                    id="firstName"
+                    type="text"
+                    value={data.firstName}
+                    onChange={(e) => updateData({ firstName: e.target.value })}
+                    placeholder="Enter your first name"
+                    autoComplete="given-name"
+                    autoFocus
+                  />
+                  {errors.firstName && (
+                    <p className="text-xs text-destructive">
+                      {errors.firstName}
+                    </p>
+                  )}
+                </div>
 
                 {/* Last name */}
                 <div className="space-y-1.5">
@@ -340,7 +320,6 @@ export default function RegisterPage() {
                     onChange={(e) => updateData({ lastName: e.target.value })}
                     placeholder="Enter your last name"
                     autoComplete="family-name"
-                    autoFocus
                   />
                   {errors.lastName && (
                     <p className="text-xs text-destructive">
@@ -461,231 +440,6 @@ export default function RegisterPage() {
                 </div>
               </section>
 
-              {/* ── Account details ── */}
-              <section className="space-y-5">
-                <h3 className="text-sm font-semibold text-foreground border-b border-border/40 pb-2">
-                  Account details
-                </h3>
-
-                <p className="text-sm text-muted-foreground">
-                  Select the type of NexusBank account you have.
-                </p>
-
-                {/* Account type radio buttons */}
-                <div className="space-y-3">
-                  {ACCOUNT_TYPE_OPTIONS.map((option) => (
-                    <label
-                      key={option.id}
-                      className={`flex items-start gap-3 rounded-lg border p-4 cursor-pointer transition-colors ${
-                        data.registrationAccountType === option.id
-                          ? 'border-primary bg-primary/[0.03]'
-                          : 'border-border hover:border-border/80 hover:bg-muted/30'
-                      }`}
-                    >
-                      <input
-                        type="radio"
-                        name="registrationAccountType"
-                        value={option.id}
-                        checked={data.registrationAccountType === option.id}
-                        onChange={() =>
-                          updateData({ registrationAccountType: option.id })
-                        }
-                        className="mt-0.5 h-4 w-4 accent-primary"
-                      />
-                      <div>
-                        <span className="text-sm font-medium text-foreground">
-                          {option.label}
-                        </span>
-                        <p className="mt-0.5 text-xs text-muted-foreground leading-relaxed">
-                          {option.description}
-                        </p>
-                      </div>
-                    </label>
-                  ))}
-                  {errors.registrationAccountType && (
-                    <p className="text-xs text-destructive">
-                      {errors.registrationAccountType}
-                    </p>
-                  )}
-                </div>
-
-                {/* Sort code */}
-                <div className="space-y-1.5">
-                  <div className="flex items-center gap-1.5">
-                    <label className="text-sm font-medium text-foreground">
-                      Sort code
-                    </label>
-                    <div className="relative">
-                      <button
-                        type="button"
-                        onMouseEnter={() => setShowSortCodeTooltip(true)}
-                        onMouseLeave={() => setShowSortCodeTooltip(false)}
-                        onClick={() =>
-                          setShowSortCodeTooltip(!showSortCodeTooltip)
-                        }
-                        className="text-muted-foreground hover:text-foreground transition-colors"
-                        aria-label="Where to find your sort code"
-                      >
-                        <CircleHelp className="h-4 w-4" />
-                      </button>
-                      {showSortCodeTooltip && (
-                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 rounded-lg border border-border bg-white dark:bg-card shadow-lg p-3 z-10">
-                          <p className="text-xs text-muted-foreground leading-relaxed">
-                            You&apos;ll find the 6-digit sort code on the front
-                            of your debit card or on your bank statements.
-                          </p>
-                          <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-px">
-                            <div className="border-4 border-transparent border-t-white dark:border-t-card" />
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 max-w-[220px]">
-                    <div className="flex-1">
-                      <Input
-                        placeholder="00"
-                        maxLength={2}
-                        inputMode="numeric"
-                        value={data.sortCode1}
-                        onChange={(e) => {
-                          const val = e.target.value
-                            .replace(/\D/g, '')
-                            .slice(0, 2)
-                          updateData({ sortCode1: val })
-                          if (val.length === 2) {
-                            document
-                              .querySelector<HTMLInputElement>(
-                                '[data-sc="2"]'
-                              )
-                              ?.focus()
-                          }
-                        }}
-                        className="text-center"
-                        aria-label="Sort code first 2 digits"
-                      />
-                    </div>
-                    <span className="text-muted-foreground font-medium">-</span>
-                    <div className="flex-1">
-                      <Input
-                        placeholder="00"
-                        maxLength={2}
-                        inputMode="numeric"
-                        value={data.sortCode2}
-                        onChange={(e) => {
-                          const val = e.target.value
-                            .replace(/\D/g, '')
-                            .slice(0, 2)
-                          updateData({ sortCode2: val })
-                          if (val.length === 2) {
-                            document
-                              .querySelector<HTMLInputElement>(
-                                '[data-sc="3"]'
-                              )
-                              ?.focus()
-                          }
-                        }}
-                        data-sc="2"
-                        className="text-center"
-                        aria-label="Sort code second 2 digits"
-                      />
-                    </div>
-                    <span className="text-muted-foreground font-medium">-</span>
-                    <div className="flex-1">
-                      <Input
-                        placeholder="00"
-                        maxLength={2}
-                        inputMode="numeric"
-                        value={data.sortCode3}
-                        onChange={(e) =>
-                          updateData({
-                            sortCode3: e.target.value
-                              .replace(/\D/g, '')
-                              .slice(0, 2),
-                          })
-                        }
-                        data-sc="3"
-                        className="text-center"
-                        aria-label="Sort code third 2 digits"
-                      />
-                    </div>
-                  </div>
-                  <p className="text-[11px] text-muted-foreground mt-1">
-                    You&apos;ll find the 6-digit sort code on the front of your
-                    debit card or authentication card.
-                  </p>
-                  {(errors.sortCode1 ||
-                    errors.sortCode2 ||
-                    errors.sortCode3) && (
-                    <p className="text-xs text-destructive">
-                      Please enter your full sort code
-                    </p>
-                  )}
-                </div>
-
-                {/* Card number */}
-                <div className="space-y-1.5">
-                  <div className="flex items-center gap-1.5">
-                    <label
-                      htmlFor="cardNumber"
-                      className="text-sm font-medium text-foreground"
-                    >
-                      Card number (16 digits)
-                    </label>
-                    <div className="relative">
-                      <button
-                        type="button"
-                        onMouseEnter={() => setShowCardTooltip(true)}
-                        onMouseLeave={() => setShowCardTooltip(false)}
-                        onClick={() => setShowCardTooltip(!showCardTooltip)}
-                        className="text-muted-foreground hover:text-foreground transition-colors"
-                        aria-label="Where to find your card number"
-                      >
-                        <CircleHelp className="h-4 w-4" />
-                      </button>
-                      {showCardTooltip && (
-                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 rounded-lg border border-border bg-white dark:bg-card shadow-lg p-3 z-10">
-                          <p className="text-xs text-muted-foreground leading-relaxed">
-                            The 16-digit number on the front of your debit card.
-                            If you haven&apos;t received a card yet, you can
-                            order one through Online Banking once registered.
-                          </p>
-                          <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-px">
-                            <div className="border-4 border-transparent border-t-white dark:border-t-card" />
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  <Input
-                    id="cardNumber"
-                    type="text"
-                    inputMode="numeric"
-                    maxLength={19}
-                    value={data.cardNumber
-                      .replace(/(.{4})/g, '$1 ')
-                      .trim()}
-                    onChange={(e) => {
-                      const raw = e.target.value
-                        .replace(/\D/g, '')
-                        .slice(0, 16)
-                      updateData({ cardNumber: raw })
-                    }}
-                    placeholder="0000 0000 0000 0000"
-                    className="max-w-[280px]"
-                  />
-                  <p className="text-[11px] text-muted-foreground mt-1">
-                    If you haven&apos;t received a card yet, you can order one
-                    through Online Banking once registered.
-                  </p>
-                  {errors.cardNumber && (
-                    <p className="text-xs text-destructive">
-                      {errors.cardNumber}
-                    </p>
-                  )}
-                </div>
-              </section>
-
               {/* ── Contact details ── */}
               <section className="space-y-5">
                 <h3 className="text-sm font-semibold text-foreground border-b border-border/40 pb-2">
@@ -799,8 +553,8 @@ export default function RegisterPage() {
                   Your details
                 </h3>
                 <div className="grid grid-cols-[140px_1fr] gap-y-3 text-sm">
-                  <span className="text-muted-foreground">Last name</span>
-                  <span className="font-medium">{data.lastName}</span>
+                  <span className="text-muted-foreground">Name</span>
+                  <span className="font-medium">{data.firstName} {data.lastName}</span>
 
                   <span className="text-muted-foreground">Date of birth</span>
                   <span className="font-medium">
@@ -809,32 +563,6 @@ export default function RegisterPage() {
 
                   <span className="text-muted-foreground">Postcode</span>
                   <span className="font-medium">{data.postcode}</span>
-                </div>
-              </div>
-
-              {/* Account details review */}
-              <div className="space-y-4">
-                <h3 className="text-sm font-semibold text-foreground border-b border-border/40 pb-2">
-                  Account details
-                </h3>
-                <div className="grid grid-cols-[140px_1fr] gap-y-3 text-sm">
-                  <span className="text-muted-foreground">Account type</span>
-                  <span className="font-medium">
-                    {ACCOUNT_TYPE_OPTIONS.find(
-                      (o) => o.id === data.registrationAccountType
-                    )?.label || '—'}
-                  </span>
-
-                  <span className="text-muted-foreground">Sort code</span>
-                  <span className="font-medium font-mono">
-                    {data.sortCode1}-{data.sortCode2}-{data.sortCode3}
-                  </span>
-
-                  <span className="text-muted-foreground">Card number</span>
-                  <span className="font-medium font-mono">
-                    •••• •••• ••••{' '}
-                    {data.cardNumber.slice(-4)}
-                  </span>
                 </div>
               </div>
 
@@ -852,6 +580,15 @@ export default function RegisterPage() {
                     {data.marketingOptOut ? 'Opted out' : 'Opted in'}
                   </span>
                 </div>
+              </div>
+
+              {/* What we'll create */}
+              <div className="rounded-lg bg-accent border border-border/40 p-4">
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Once you complete registration, we&apos;ll automatically create
+                  your current account and generate your membership number, sort
+                  code, account number, and debit card details.
+                </p>
               </div>
 
               {/* Edit link */}

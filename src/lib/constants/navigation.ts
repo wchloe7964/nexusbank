@@ -18,6 +18,11 @@ import {
   Target,
   ShieldAlert,
   Gift,
+  CircleDollarSign,
+  Banknote,
+  TrendingUp,
+  Shield,
+  Calculator,
 } from 'lucide-react'
 
 export const navigation = [
@@ -52,6 +57,26 @@ export const navigation = [
     icon: CreditCard,
   },
   {
+    label: 'Credit Cards',
+    href: '/my-credit-cards',
+    icon: CircleDollarSign,
+  },
+  {
+    label: 'Loans',
+    href: '/my-loans',
+    icon: Banknote,
+  },
+  {
+    label: 'Investments',
+    href: '/my-investments',
+    icon: TrendingUp,
+  },
+  {
+    label: 'Insurance',
+    href: '/my-insurance',
+    icon: Shield,
+  },
+  {
     label: 'Savings',
     href: '/savings-goals',
     icon: PiggyBank,
@@ -65,6 +90,11 @@ export const navigation = [
     label: 'Rewards',
     href: '/rewards',
     icon: Gift,
+  },
+  {
+    label: 'Tools',
+    href: '/tools',
+    icon: Calculator,
   },
   {
     label: 'Insights',

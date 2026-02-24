@@ -427,6 +427,133 @@ export interface RewardsSummary {
   categoryBreakdown: { category: string; amount: number; count: number }[]
 }
 
+// Credit Card types
+export type CreditCardNetwork = 'visa' | 'mastercard'
+export type CreditCardStatus = 'active' | 'frozen' | 'closed'
+
+export interface CreditCard {
+  id: string
+  user_id: string
+  card_name: string
+  card_number_last_four: string
+  card_network: CreditCardNetwork
+  credit_limit: number
+  current_balance: number
+  available_credit: number
+  minimum_payment: number
+  apr: number
+  payment_due_date: string | null
+  statement_date: string | null
+  status: CreditCardStatus
+  rewards_rate: number
+  linked_account_id: string | null
+  created_at: string
+  updated_at: string
+  linked_account?: Account | null
+}
+
+// Loan types
+export type LoanType = 'personal' | 'mortgage' | 'auto' | 'student'
+export type LoanStatus = 'active' | 'paid_off' | 'defaulted'
+
+export interface Loan {
+  id: string
+  user_id: string
+  loan_name: string
+  loan_type: LoanType
+  original_amount: number
+  remaining_balance: number
+  monthly_payment: number
+  interest_rate: number
+  term_months: number
+  months_remaining: number
+  start_date: string
+  end_date: string
+  next_payment_date: string | null
+  status: LoanStatus
+  linked_account_id: string | null
+  created_at: string
+  updated_at: string
+  linked_account?: Account | null
+}
+
+// Investment types
+export type InvestmentAccountType = 'stocks_isa' | 'lifetime_isa' | 'general_investment' | 'pension'
+export type AssetType = 'stock' | 'bond' | 'etf' | 'fund' | 'cash'
+
+export interface InvestmentAccount {
+  id: string
+  user_id: string
+  account_name: string
+  account_type: InvestmentAccountType
+  total_value: number
+  total_invested: number
+  total_gain_loss: number
+  currency_code: string
+  opened_at: string
+  created_at: string
+  updated_at: string
+  holdings?: Holding[]
+}
+
+export interface Holding {
+  id: string
+  investment_account_id: string
+  asset_name: string
+  asset_type: AssetType
+  ticker: string | null
+  quantity: number
+  avg_buy_price: number
+  current_price: number
+  current_value: number
+  gain_loss: number
+  gain_loss_pct: number
+  allocation_pct: number
+  created_at: string
+  updated_at: string
+}
+
+// Insurance types
+export type InsurancePolicyType = 'home' | 'car' | 'life' | 'travel' | 'health' | 'pet'
+export type InsurancePolicyStatus = 'active' | 'expired' | 'cancelled' | 'pending'
+export type InsuranceClaimStatus = 'submitted' | 'under_review' | 'approved' | 'denied' | 'paid'
+
+export interface InsurancePolicy {
+  id: string
+  user_id: string
+  policy_name: string
+  policy_number: string
+  policy_type: InsurancePolicyType
+  provider: string
+  premium_monthly: number
+  coverage_amount: number
+  excess_amount: number
+  start_date: string
+  end_date: string
+  auto_renew: boolean
+  status: InsurancePolicyStatus
+  created_at: string
+  updated_at: string
+  claims?: InsuranceClaim[]
+}
+
+export interface InsuranceClaim {
+  id: string
+  policy_id: string
+  user_id: string
+  claim_reference: string
+  claim_type: string
+  description: string | null
+  amount_claimed: number
+  amount_approved: number | null
+  status: InsuranceClaimStatus
+  submitted_at: string
+  resolved_at: string | null
+  created_at: string
+  updated_at: string
+  policy?: InsurancePolicy | null
+}
+
 // Analytics types
 export interface MerchantSpending {
   counterparty_name: string

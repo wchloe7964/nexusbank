@@ -260,6 +260,33 @@ export const categoryEditSchema = z.object({
 
 // ---------- Spending Alerts ----------
 
+// ---------- Credit Card Payment ----------
+
+export const creditCardPaymentSchema = z.object({
+  creditCardId: z.string().min(1),
+  fromAccountId: z.string().min(1, 'Please select an account'),
+  amount: z.number().positive('Amount must be greater than 0').max(100000, 'Maximum payment is £100,000'),
+})
+
+// ---------- Loan Overpayment ----------
+
+export const loanOverpaymentSchema = z.object({
+  loanId: z.string().min(1),
+  fromAccountId: z.string().min(1, 'Please select an account'),
+  amount: z.number().positive('Amount must be greater than 0').max(500000, 'Maximum overpayment is £500,000'),
+})
+
+// ---------- Insurance Claim ----------
+
+export const insuranceClaimSchema = z.object({
+  policyId: z.string().min(1, 'Please select a policy'),
+  claimType: z.string().min(1, 'Please select a claim type').max(100),
+  description: z.string().min(10, 'Please provide a description (at least 10 characters)').max(1000),
+  amountClaimed: z.number().positive('Amount must be greater than 0').max(1000000),
+})
+
+// ---------- Spending Alerts ----------
+
 export const spendingAlertSchema = z.object({
   name: z.string().min(1, 'Name is required').max(50),
   alertType: z.enum(['single_transaction', 'category_monthly', 'balance_below', 'merchant_payment', 'large_incoming']),

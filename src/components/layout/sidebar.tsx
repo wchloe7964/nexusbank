@@ -2,18 +2,39 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { navigation } from '@/lib/constants/navigation'
+import { navigationGroups } from '@/lib/constants/navigation'
+import type { NavGroup } from '@/lib/constants/navigation'
 import { cn } from '@/lib/utils/cn'
-import { ChevronLeft, LogOut } from 'lucide-react'
+import { ChevronDown, ChevronLeft, LogOut } from 'lucide-react'
 import { Logo, LogoMark } from '@/components/brand/logo'
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+
+function useGroupOpen(group: NavGroup, pathname: string) {
+  const hasActiveChild = group.items.some(
+    (item) => pathname === item.href || pathname.startsWith(item.href + '/')
+  )
+  return hasActiveChild
+}
 
 export function Sidebar() {
   const pathname = usePathname()
   const router = useRouter()
   const [collapsed, setCollapsed] = useState(false)
+
+  // Track which collapsible groups are manually toggled
+  // null = follow auto-open logic (open if active child), true/false = manual override
+  const [manualOpen, setManualOpen] = useState<Record<string, boolean | null>>({})
+
+  const toggleGroup = useCallback((label: string) => {
+    setManualOpen((prev) => {
+      const current = prev[label]
+      // If currently null (auto) or true, close it. If false, open it.
+      if (current === false) return { ...prev, [label]: true }
+      return { ...prev, [label]: false }
+    })
+  }, [])
 
   async function handleSignOut() {
     const supabase = createClient()
@@ -53,8 +74,97 @@ export function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav aria-label="Main navigation" className="flex-1 space-y-0.5 px-3 mt-4">
-        {navigation.map((item) => {
+      <nav aria-label="Main navigation" className="flex-1 overflow-y-auto px-3 mt-2 pb-2">
+        {navigationGroups.map((group, groupIndex) => (
+          <SidebarGroup
+            key={group.label}
+            group={group}
+            groupIndex={groupIndex}
+            pathname={pathname}
+            collapsed={collapsed}
+            manualOpen={manualOpen[group.label] ?? null}
+            onToggle={() => toggleGroup(group.label)}
+          />
+        ))}
+      </nav>
+
+      {/* Sign out */}
+      <div className="px-3 pb-4">
+        <button
+          onClick={handleSignOut}
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-white/40 hover:bg-white/[0.06] hover:text-white/70 transition-all duration-200"
+        >
+          <LogOut className="h-[18px] w-[18px] shrink-0" />
+          {!collapsed && <span>Sign out</span>}
+        </button>
+      </div>
+    </aside>
+  )
+}
+
+function SidebarGroup({
+  group,
+  groupIndex,
+  pathname,
+  collapsed,
+  manualOpen,
+  onToggle,
+}: {
+  group: NavGroup
+  groupIndex: number
+  pathname: string
+  collapsed: boolean
+  manualOpen: boolean | null
+  onToggle: () => void
+}) {
+  const hasActiveChild = useGroupOpen(group, pathname)
+
+  // Determine if group is open
+  const isOpen = group.collapsible
+    ? manualOpen !== null ? manualOpen : hasActiveChild
+    : true // non-collapsible groups are always open
+
+  return (
+    <div>
+      {/* Group separator / label */}
+      {groupIndex > 0 && (
+        collapsed ? (
+          <div className="mx-3 my-3 border-t border-white/10" />
+        ) : group.collapsible ? (
+          <button
+            onClick={onToggle}
+            className="mt-5 mb-1 px-3 w-full flex items-center justify-between group/label"
+          >
+            <span className={cn(
+              'text-[10px] font-semibold uppercase tracking-widest transition-colors',
+              hasActiveChild ? 'text-white/50' : 'text-white/30 group-hover/label:text-white/40'
+            )}>
+              {group.label}
+            </span>
+            <ChevronDown
+              className={cn(
+                'h-3 w-3 transition-transform duration-200',
+                hasActiveChild ? 'text-white/40' : 'text-white/20 group-hover/label:text-white/30',
+                !isOpen && '-rotate-90'
+              )}
+            />
+          </button>
+        ) : (
+          <p className="mt-5 mb-1 px-3 text-[10px] font-semibold uppercase tracking-widest text-white/30">
+            {group.label}
+          </p>
+        )
+      )}
+
+      {/* Group items */}
+      <div
+        className={cn(
+          'space-y-0.5 overflow-hidden transition-all duration-200',
+          group.collapsible && !collapsed && !isOpen && 'max-h-0 opacity-0',
+          (!group.collapsible || collapsed || isOpen) && 'max-h-[500px] opacity-100',
+        )}
+      >
+        {group.items.map((item) => {
           const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
           return (
             <Link
@@ -75,18 +185,7 @@ export function Sidebar() {
             </Link>
           )
         })}
-      </nav>
-
-      {/* Sign out */}
-      <div className="px-3 pb-4">
-        <button
-          onClick={handleSignOut}
-          className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-white/40 hover:bg-white/[0.06] hover:text-white/70 transition-all duration-200"
-        >
-          <LogOut className="h-[18px] w-[18px] shrink-0" />
-          {!collapsed && <span>Sign out</span>}
-        </button>
       </div>
-    </aside>
+    </div>
   )
 }

@@ -1,3 +1,4 @@
+import type { LucideIcon } from 'lucide-react'
 import {
   LayoutDashboard,
   Wallet,
@@ -25,108 +26,78 @@ import {
   Calculator,
 } from 'lucide-react'
 
-export const navigation = [
+export interface NavItem {
+  label: string
+  href: string
+  icon: LucideIcon
+}
+
+export interface NavGroup {
+  label: string
+  items: NavItem[]
+  collapsible?: boolean
+}
+
+export const navigationGroups: NavGroup[] = [
   {
-    label: 'Dashboard',
-    href: '/dashboard',
-    icon: LayoutDashboard,
+    label: 'Overview',
+    items: [
+      { label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
+    ],
   },
   {
-    label: 'Accounts',
-    href: '/accounts',
-    icon: Wallet,
+    label: 'Accounts & Cards',
+    collapsible: true,
+    items: [
+      { label: 'Accounts', href: '/accounts', icon: Wallet },
+      { label: 'Cards', href: '/cards', icon: CreditCard },
+      { label: 'Credit Cards', href: '/my-credit-cards', icon: CircleDollarSign },
+    ],
   },
   {
-    label: 'Transfers',
-    href: '/transfers',
-    icon: ArrowLeftRight,
+    label: 'Payments & Transfers',
+    collapsible: true,
+    items: [
+      { label: 'Transfers', href: '/transfers', icon: ArrowLeftRight },
+      { label: 'Payments', href: '/payments', icon: Receipt },
+      { label: 'Payees', href: '/payees', icon: Users },
+      { label: 'Transactions', href: '/transactions', icon: History },
+      { label: 'Statements', href: '/statements', icon: FileDown },
+    ],
   },
   {
-    label: 'Payments',
-    href: '/payments',
-    icon: Receipt,
+    label: 'Products',
+    collapsible: true,
+    items: [
+      { label: 'Loans', href: '/my-loans', icon: Banknote },
+      { label: 'Investments', href: '/my-investments', icon: TrendingUp },
+      { label: 'Insurance', href: '/my-insurance', icon: Shield },
+      { label: 'Savings', href: '/savings-goals', icon: PiggyBank },
+      { label: 'Rewards', href: '/rewards', icon: Gift },
+    ],
   },
   {
-    label: 'Transactions',
-    href: '/transactions',
-    icon: History,
+    label: 'Planning & Insights',
+    collapsible: true,
+    items: [
+      { label: 'Budgets', href: '/budgets', icon: Target },
+      { label: 'Insights', href: '/insights', icon: PieChart },
+      { label: 'Tools', href: '/tools', icon: Calculator },
+    ],
   },
   {
-    label: 'Cards',
-    href: '/cards',
-    icon: CreditCard,
-  },
-  {
-    label: 'Credit Cards',
-    href: '/my-credit-cards',
-    icon: CircleDollarSign,
-  },
-  {
-    label: 'Loans',
-    href: '/my-loans',
-    icon: Banknote,
-  },
-  {
-    label: 'Investments',
-    href: '/my-investments',
-    icon: TrendingUp,
-  },
-  {
-    label: 'Insurance',
-    href: '/my-insurance',
-    icon: Shield,
-  },
-  {
-    label: 'Savings',
-    href: '/savings-goals',
-    icon: PiggyBank,
-  },
-  {
-    label: 'Budgets',
-    href: '/budgets',
-    icon: Target,
-  },
-  {
-    label: 'Rewards',
-    href: '/rewards',
-    icon: Gift,
-  },
-  {
-    label: 'Tools',
-    href: '/tools',
-    icon: Calculator,
-  },
-  {
-    label: 'Insights',
-    href: '/insights',
-    icon: PieChart,
-  },
-  {
-    label: 'Statements',
-    href: '/statements',
-    icon: FileDown,
-  },
-  {
-    label: 'Payees',
-    href: '/payees',
-    icon: Users,
-  },
-  {
-    label: 'Disputes',
-    href: '/disputes',
-    icon: ShieldAlert,
-  },
-  {
-    label: 'Notifications',
-    href: '/notifications',
-    icon: Bell,
-  },
-  {
-    label: 'Settings',
-    href: '/settings',
-    icon: Settings,
+    label: 'Support & Settings',
+    collapsible: true,
+    items: [
+      { label: 'Disputes', href: '/disputes', icon: ShieldAlert },
+      { label: 'Notifications', href: '/notifications', icon: Bell },
+      { label: 'Settings', href: '/settings', icon: Settings },
+    ],
   },
 ]
+
+// Flat array for backward compatibility (bottom-nav filtering, etc.)
+export const navigation = navigationGroups.flatMap((g) => g.items)
 
 export const bottomNavItems = [
   { label: 'Accounts', href: '/dashboard', icon: Home },

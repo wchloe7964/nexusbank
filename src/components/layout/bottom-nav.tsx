@@ -1,17 +1,27 @@
 'use client'
 
-import { useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { bottomNavItems, navigation } from '@/lib/constants/navigation'
+import { bottomNavItems, navigationGroups } from '@/lib/constants/navigation'
+import type { NavGroup } from '@/lib/constants/navigation'
 import { cn } from '@/lib/utils/cn'
-import { LogOut, X } from 'lucide-react'
+import { ChevronDown, LogOut, X } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 
 export function BottomNav() {
   const pathname = usePathname()
   const router = useRouter()
   const [moreOpen, setMoreOpen] = useState(false)
+  const [manualOpen, setManualOpen] = useState<Record<string, boolean | null>>({})
+
+  const toggleGroup = useCallback((label: string) => {
+    setManualOpen((prev) => {
+      const current = prev[label]
+      if (current === false) return { ...prev, [label]: true }
+      return { ...prev, [label]: false }
+    })
+  }, [])
 
   async function handleSignOut() {
     const supabase = createClient()
@@ -19,9 +29,18 @@ export function BottomNav() {
     router.push('/login')
   }
 
-  // Items shown in the "More" drawer — exclude those already in bottom nav
-  const bottomHrefs = new Set(bottomNavItems.map((i) => i.href))
-  const moreItems = navigation.filter((item) => !bottomHrefs.has(item.href))
+  // Build grouped "More" items — exclude hrefs already shown in the bottom tab bar
+  const bottomHrefs = useMemo(() => new Set(bottomNavItems.map((i) => i.href)), [])
+  const moreGroups = useMemo(
+    () =>
+      navigationGroups
+        .map((group) => ({
+          ...group,
+          items: group.items.filter((item) => !bottomHrefs.has(item.href)),
+        }))
+        .filter((group) => group.items.length > 0),
+    [bottomHrefs]
+  )
 
   return (
     <>
@@ -73,7 +92,7 @@ export function BottomNav() {
       {moreOpen && (
         <div className="fixed inset-0 z-[60] lg:hidden">
           <div className="fixed inset-0 bg-black/40 backdrop-blur-[2px]" onClick={() => setMoreOpen(false)} />
-          <div className="fixed bottom-0 left-0 right-0 z-[60] rounded-t-2xl bg-card shadow-[0_-8px_30px_rgba(0,0,0,0.15)] animate-slide-up">
+          <div className="fixed bottom-0 left-0 right-0 z-[60] max-h-[80vh] rounded-t-2xl bg-card shadow-[0_-8px_30px_rgba(0,0,0,0.15)] animate-slide-up flex flex-col">
             {/* Handle bar */}
             <div className="flex justify-center pt-3 pb-1">
               <div className="h-1 w-10 rounded-full bg-muted-foreground/20" />
@@ -90,27 +109,19 @@ export function BottomNav() {
               </button>
             </div>
 
-            {/* Nav Items */}
-            <nav className="px-3 py-2 space-y-0.5">
-              {moreItems.map((item) => {
-                const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    onClick={() => setMoreOpen(false)}
-                    className={cn(
-                      'flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium transition-all',
-                      isActive
-                        ? 'bg-primary/10 text-primary'
-                        : 'text-foreground hover:bg-muted',
-                    )}
-                  >
-                    <item.icon className={cn('h-[18px] w-[18px]', isActive && 'text-primary')} />
-                    <span>{item.label}</span>
-                  </Link>
-                )
-              })}
+            {/* Grouped Nav Items */}
+            <nav className="px-3 py-2 overflow-y-auto flex-1">
+              {moreGroups.map((group, groupIndex) => (
+                <MoreDrawerGroup
+                  key={group.label}
+                  group={group}
+                  groupIndex={groupIndex}
+                  pathname={pathname}
+                  manualOpen={manualOpen[group.label] ?? null}
+                  onToggle={() => toggleGroup(group.label)}
+                  onClose={() => setMoreOpen(false)}
+                />
+              ))}
             </nav>
 
             {/* Sign Out */}
@@ -127,5 +138,96 @@ export function BottomNav() {
         </div>
       )}
     </>
+  )
+}
+
+function MoreDrawerGroup({
+  group,
+  groupIndex,
+  pathname,
+  manualOpen,
+  onToggle,
+  onClose,
+}: {
+  group: NavGroup
+  groupIndex: number
+  pathname: string
+  manualOpen: boolean | null
+  onToggle: () => void
+  onClose: () => void
+}) {
+  const hasActiveChild = group.items.some(
+    (item) => pathname === item.href || pathname.startsWith(item.href + '/')
+  )
+
+  const isOpen = group.collapsible
+    ? manualOpen !== null ? manualOpen : hasActiveChild
+    : true
+
+  const showLabel = groupIndex > 0 || group.label !== 'Overview'
+
+  return (
+    <div>
+      {showLabel && (
+        group.collapsible ? (
+          <button
+            onClick={onToggle}
+            className={cn(
+              'px-3 w-full flex items-center justify-between group/label',
+              groupIndex > 0 ? 'mt-4 mb-1' : 'mb-1'
+            )}
+          >
+            <span className={cn(
+              'text-[10px] font-semibold uppercase tracking-widest transition-colors',
+              hasActiveChild ? 'text-muted-foreground/70' : 'text-muted-foreground/50 group-hover/label:text-muted-foreground/60'
+            )}>
+              {group.label}
+            </span>
+            <ChevronDown
+              className={cn(
+                'h-3 w-3 transition-transform duration-200',
+                hasActiveChild ? 'text-muted-foreground/60' : 'text-muted-foreground/30 group-hover/label:text-muted-foreground/40',
+                !isOpen && '-rotate-90'
+              )}
+            />
+          </button>
+        ) : (
+          <p className={cn(
+            'px-3 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/50',
+            groupIndex > 0 ? 'mt-4 mb-1' : 'mb-1'
+          )}>
+            {group.label}
+          </p>
+        )
+      )}
+
+      <div
+        className={cn(
+          'space-y-0.5 overflow-hidden transition-all duration-200',
+          group.collapsible && !isOpen && 'max-h-0 opacity-0',
+          (!group.collapsible || isOpen) && 'max-h-[500px] opacity-100',
+        )}
+      >
+        {group.items.map((item) => {
+          const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              onClick={onClose}
+              className={cn(
+                'flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium transition-all',
+                isActive
+                  ? 'bg-primary/10 text-primary'
+                  : 'text-foreground hover:bg-muted',
+              )}
+            >
+              <item.icon className={cn('h-[18px] w-[18px]', isActive && 'text-primary')} />
+              <span>{item.label}</span>
+            </Link>
+          )
+        })}
+      </div>
+    </div>
   )
 }

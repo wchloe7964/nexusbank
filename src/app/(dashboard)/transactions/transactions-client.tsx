@@ -448,7 +448,7 @@ export default function TransactionsClient({ initialTransactions, accounts, init
                         : 'border-border hover:border-primary/50 hover:bg-muted/30'
                     } disabled:opacity-50`}
                   >
-                    <div className={`rounded-full p-2 ${val.bg}`}>
+                    <div className={`rounded-xl p-2 ${val.bg}`}>
                       <CatIcon className={`h-4 w-4 ${val.color}`} />
                     </div>
                     <span className="text-xs font-medium">{val.label}</span>
@@ -495,7 +495,7 @@ export default function TransactionsClient({ initialTransactions, accounts, init
                       <button
                         type="button"
                         onClick={() => { setCategoryEditTx(tx); setCategoryError('') }}
-                        className={`relative rounded-full p-2.5 shrink-0 ${cat?.bg} hover:ring-2 hover:ring-primary/30 transition-all`}
+                        className={`relative rounded-xl p-2.5 shrink-0 ${cat?.bg} hover:ring-2 hover:ring-primary/30 transition-all`}
                         title="Change category"
                       >
                         {Icon && <Icon className={`h-4 w-4 ${cat?.color}`} />}

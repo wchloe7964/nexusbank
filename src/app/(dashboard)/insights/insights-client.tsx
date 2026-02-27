@@ -340,7 +340,7 @@ export function InsightsClient({
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
                       {Icon && (
-                        <div className={`rounded-full p-1.5 ${catInfo.bg}`}>
+                        <div className={`rounded-xl p-1.5 ${catInfo.bg}`}>
                           <Icon className={`h-3.5 w-3.5 ${catInfo.color}`} />
                         </div>
                       )}

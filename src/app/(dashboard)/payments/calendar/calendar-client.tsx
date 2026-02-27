@@ -197,7 +197,7 @@ export function CalendarClient({ year, month, calendarData }: CalendarClientProp
               {selectedDay.payments.map((payment) => (
                 <div key={payment.id} className="flex items-center justify-between py-3 first:pt-0 last:pb-0">
                   <div className="flex items-center gap-3">
-                    <div className={`rounded-full p-2 ${
+                    <div className={`rounded-xl p-2 ${
                       payment.type === 'direct_debit'
                         ? 'bg-orange-500/10'
                         : 'bg-purple-500/10'

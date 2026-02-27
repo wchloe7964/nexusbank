@@ -6,13 +6,19 @@ import { redirect } from 'next/navigation'
 
 type LoginMethod = 'membership' | 'card' | 'account'
 
+// Use a consistent generic error to prevent user enumeration
+const GENERIC_LOGIN_ERROR = 'We couldn\'t find an account matching those details. Please check and try again.'
+
+// Nil UUID for failed login attempts — avoids leaking real user IDs
+const NIL_UUID = '00000000-0000-0000-0000-000000000000'
+
 interface LoginPayload {
   method: LoginMethod
   lastName: string
   // Membership method
   membershipNumber?: string
-  // Card method
-  cardNumber?: string
+  // Card method — now uses last 4 digits only
+  cardLast4?: string
   // Account method
   sortCode?: string
   accountNumber?: string
@@ -28,69 +34,74 @@ export async function signInWithIdentifier(payload: LoginPayload) {
     return { error: 'Please enter your last name' }
   }
 
-  // Use Supabase admin API to find the user by their identifier in user_metadata
-  // listUsers with page/perPage to search through all users
-  const { data: usersData, error: listError } = await admin.auth.admin.listUsers({
-    page: 1,
-    perPage: 1000,
-  })
+  // Paginated user search — never fetch all 1000 at once
+  const PAGE_SIZE = 50
+  let page = 1
+  let matchedUser = null
+  let hasMore = true
 
-  if (listError) {
-    console.error('Failed to list users:', listError)
-    return { error: 'Unable to verify your identity. Please try again later.' }
-  }
-
-  const users = usersData?.users || []
   const lastNameLower = lastName.trim().toLowerCase()
 
-  let matchedUser = null
+  while (hasMore && !matchedUser) {
+    const { data: usersData, error: listError } = await admin.auth.admin.listUsers({
+      page,
+      perPage: PAGE_SIZE,
+    })
 
-  for (const user of users) {
-    const meta = user.user_metadata || {}
-    const userLastName = (meta.last_name || '').toLowerCase()
+    if (listError) {
+      console.error('Failed to list users:', listError)
+      return { error: 'Unable to verify your identity. Please try again later.' }
+    }
 
-    // Last name must match
-    if (userLastName !== lastNameLower) continue
+    const users = usersData?.users || []
+    if (users.length < PAGE_SIZE) hasMore = false
 
-    if (method === 'membership') {
-      if (meta.membership_number === payload.membershipNumber) {
-        matchedUser = user
-        break
-      }
-    } else if (method === 'card') {
-      // Match by card number (16 digits)
-      if (meta.card_number === payload.cardNumber) {
-        matchedUser = user
-        break
-      }
-    } else if (method === 'account') {
-      // Match by sort code + account number
-      const inputSortCode = payload.sortCode?.replace(/-/g, '') || ''
-      const storedSortCode = (meta.sort_code || '').replace(/-/g, '')
+    for (const user of users) {
+      const meta = user.user_metadata || {}
+      const userLastName = (meta.last_name || '').toLowerCase()
 
-      if (storedSortCode === inputSortCode && meta.account_number === payload.accountNumber) {
-        matchedUser = user
-        break
+      // Last name must match
+      if (userLastName !== lastNameLower) continue
+
+      if (method === 'membership') {
+        if (meta.membership_number === payload.membershipNumber) {
+          matchedUser = user
+          break
+        }
+      } else if (method === 'card') {
+        // Match by card last 4 digits only — no full card number
+        if (meta.card_last4 === payload.cardLast4) {
+          matchedUser = user
+          break
+        }
+      } else if (method === 'account') {
+        const inputSortCode = payload.sortCode?.replace(/-/g, '') || ''
+        const storedSortCode = (meta.sort_code || '').replace(/-/g, '')
+
+        if (storedSortCode === inputSortCode && meta.account_number === payload.accountNumber) {
+          matchedUser = user
+          break
+        }
       }
     }
+
+    page++
   }
 
   if (!matchedUser) {
-    // Log failed login attempt
+    // Log failed login attempt with nil UUID — never leak real user IDs
     try {
       await admin.from('login_activity').insert({
-        user_id: users[0]?.id || '00000000-0000-0000-0000-000000000000',
+        user_id: NIL_UUID,
         event_type: 'login_failed',
         device_type: 'unknown',
         metadata: { method, reason: 'no_matching_account' },
       })
     } catch { /* ignore logging errors */ }
-    return { error: 'We couldn\'t find an account matching those details. Please check and try again.' }
+    return { error: GENERIC_LOGIN_ERROR }
   }
 
-  // Found the user — now sign them in using their email + a generated token
-  // Since we don't have the user's password (that's the point — no password login),
-  // we use the admin API to generate a magic link or directly create a session
+  // Found the user — sign them in using a magic link token
   const { data: linkData, error: linkError } = await admin.auth.admin.generateLink({
     type: 'magiclink',
     email: matchedUser.email!,
@@ -101,7 +112,6 @@ export async function signInWithIdentifier(payload: LoginPayload) {
     return { error: 'Unable to sign you in. Please try again.' }
   }
 
-  // Extract the token from the link and verify it server-side to create a session
   const url = new URL(linkData.properties.action_link)
   const token = url.searchParams.get('token')
   const tokenType = url.searchParams.get('type') || 'magiclink'
@@ -130,7 +140,7 @@ export async function signInWithIdentifier(payload: LoginPayload) {
     })
   } catch { /* ignore logging errors */ }
 
-  // Check if user has MFA enrolled — redirect to 2FA challenge if needed
+  // Check if user has MFA enrolled
   const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
 
   if (

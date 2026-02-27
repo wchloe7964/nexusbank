@@ -17,7 +17,9 @@ import {
   Tablet, Phone, ChevronRight, Zap,
 } from 'lucide-react'
 import Link from 'next/link'
-import { updateProfile, changePassword, updateNotificationPreferences, signOutAllDevices } from './actions'
+import { updateProfile, changePassword, updateNotificationPreferences, signOutAllDevices, updateTwoFactorEnabled } from './actions'
+import { createScaChallenge } from '@/lib/sca/sca-service'
+import { ScaDialog } from '@/components/shared/sca-dialog'
 import { TwoFactorSetupDialog } from '@/components/two-factor/two-factor-setup-dialog'
 import { TwoFactorDisableDialog } from '@/components/two-factor/two-factor-disable-dialog'
 import { formatDistanceToNow } from 'date-fns'
@@ -106,6 +108,11 @@ export default function SettingsClient({ profile, loginActivity, securityScore }
   const [showSignOutDialog, setShowSignOutDialog] = useState(false)
   const [signingOut, setSigningOut] = useState(false)
 
+  // SCA state
+  const [scaChallengeId, setScaChallengeId] = useState<string | null>(null)
+  const [scaExpiresAt, setScaExpiresAt] = useState<string | null>(null)
+  const [scaAction, setScaAction] = useState<'password' | '2fa_enable' | '2fa_disable' | null>(null)
+
   // Read biometric preference from localStorage (SSR-safe)
   useEffect(() => {
     try {
@@ -135,14 +142,29 @@ export default function SettingsClient({ profile, loginActivity, securityScore }
     setTimeout(() => setProfileMessage(null), 4000)
   }
 
-  async function handlePasswordChange() {
+  async function handlePasswordChange(challengeId?: string) {
     setPasswordSaving(true)
     setPasswordMessage(null)
     const result = await changePassword({
       currentPassword,
       newPassword,
+      scaChallengeId: challengeId,
     })
     setPasswordSaving(false)
+
+    // SCA required — create challenge
+    if (result.requiresSca && !challengeId) {
+      try {
+        const challenge = await createScaChallenge('change_password', {})
+        setScaChallengeId(challenge.challengeId)
+        setScaExpiresAt(challenge.expiresAt)
+        setScaAction('password')
+      } catch {
+        setPasswordMessage({ type: 'error', text: 'Failed to create security challenge. Please try again.' })
+      }
+      return
+    }
+
     if (result.error) {
       setPasswordMessage({ type: 'error', text: result.error })
     } else {
@@ -313,7 +335,7 @@ export default function SettingsClient({ profile, loginActivity, securityScore }
                 </div>
                 <div className="flex items-center gap-3">
                   <Button
-                    onClick={handlePasswordChange}
+                    onClick={() => handlePasswordChange()}
                     disabled={!currentPassword || !newPassword || newPassword !== confirmPassword || passwordSaving}
                   >
                     {passwordSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -336,7 +358,7 @@ export default function SettingsClient({ profile, loginActivity, securityScore }
               <CardContent className="space-y-5">
                 <div className="flex items-center justify-between py-1">
                   <div className="flex items-center gap-3">
-                    <div className="rounded-full bg-primary/[0.08] p-2">
+                    <div className="rounded-xl bg-primary/10 p-2">
                       <Smartphone className="h-4 w-4 text-primary" />
                     </div>
                     <div>
@@ -348,11 +370,27 @@ export default function SettingsClient({ profile, loginActivity, securityScore }
                     {twoFactor && <Badge variant="success">Enabled</Badge>}
                     <Switch
                       checked={twoFactor}
-                      onCheckedChange={() => {
+                      onCheckedChange={async () => {
                         if (twoFactor) {
-                          setShowDisable2FA(true)
+                          // Disabling 2FA — request SCA first
+                          try {
+                            const challenge = await createScaChallenge('toggle_2fa', { action: 'disable' })
+                            setScaChallengeId(challenge.challengeId)
+                            setScaExpiresAt(challenge.expiresAt)
+                            setScaAction('2fa_disable')
+                          } catch {
+                            setPasswordMessage({ type: 'error', text: 'Failed to create security challenge.' })
+                          }
                         } else {
-                          setShowSetup2FA(true)
+                          // Enabling 2FA — request SCA first
+                          try {
+                            const challenge = await createScaChallenge('toggle_2fa', { action: 'enable' })
+                            setScaChallengeId(challenge.challengeId)
+                            setScaExpiresAt(challenge.expiresAt)
+                            setScaAction('2fa_enable')
+                          } catch {
+                            setPasswordMessage({ type: 'error', text: 'Failed to create security challenge.' })
+                          }
                         }
                       }}
                     />
@@ -360,7 +398,7 @@ export default function SettingsClient({ profile, loginActivity, securityScore }
                 </div>
                 <div className="flex items-center justify-between py-1">
                   <div className="flex items-center gap-3">
-                    <div className="rounded-full bg-primary/[0.08] p-2">
+                    <div className="rounded-xl bg-primary/10 p-2">
                       <Fingerprint className="h-4 w-4 text-primary" />
                     </div>
                     <div>
@@ -465,8 +503,8 @@ export default function SettingsClient({ profile, loginActivity, securityScore }
                       return (
                         <div key={event.id} className="flex items-start gap-3 py-3">
                           <div className={cn(
-                            'rounded-full p-2 shrink-0 mt-0.5',
-                            isSuspicious ? 'bg-red-500/10' : 'bg-primary/[0.08]'
+                            'rounded-xl p-2 shrink-0 mt-0.5',
+                            isSuspicious ? 'bg-red-500/10' : 'bg-primary/10'
                           )}>
                             <EventIcon className={cn('h-3.5 w-3.5', isSuspicious ? 'text-red-500' : 'text-primary')} />
                           </div>
@@ -519,6 +557,54 @@ export default function SettingsClient({ profile, loginActivity, securityScore }
               </CardContent>
             </Card>
 
+            {/* SCA Dialog for password change / 2FA toggle */}
+            {scaChallengeId && scaExpiresAt && scaAction && (
+              <ScaDialog
+                challengeId={scaChallengeId}
+                expiresAt={scaExpiresAt}
+                onVerified={async () => {
+                  const id = scaChallengeId
+                  setScaChallengeId(null)
+                  setScaExpiresAt(null)
+                  const action = scaAction
+                  setScaAction(null)
+
+                  if (action === 'password') {
+                    handlePasswordChange(id)
+                  } else if (action === '2fa_enable') {
+                    const result = await updateTwoFactorEnabled(true, id)
+                    if (result.error) {
+                      setPasswordMessage({ type: 'error', text: result.error })
+                    } else {
+                      setShowSetup2FA(true)
+                    }
+                  } else if (action === '2fa_disable') {
+                    const result = await updateTwoFactorEnabled(false, id)
+                    if (result.error) {
+                      setPasswordMessage({ type: 'error', text: result.error })
+                    } else {
+                      setShowDisable2FA(true)
+                    }
+                  }
+                }}
+                onCancel={() => {
+                  setScaChallengeId(null)
+                  setScaExpiresAt(null)
+                  setScaAction(null)
+                }}
+                title={
+                  scaAction === 'password'
+                    ? 'Verify Password Change'
+                    : 'Verify Security Change'
+                }
+                description={
+                  scaAction === 'password'
+                    ? 'Enter the 6-digit code to authorise changing your password.'
+                    : 'Enter the 6-digit code to authorise this security setting change.'
+                }
+              />
+            )}
+
             <Dialog open={showSignOutDialog} onClose={() => setShowSignOutDialog(false)} title="Sign Out All Devices">
               <p className="text-sm text-muted-foreground">
                 Are you sure you want to sign out of all devices? You will need to log in again on this and all other devices.
@@ -543,7 +629,7 @@ export default function SettingsClient({ profile, loginActivity, securityScore }
               <CardContent className="space-y-5">
                 <div className="flex items-center justify-between py-1">
                   <div className="flex items-center gap-3">
-                    <div className="rounded-full bg-primary/[0.08] p-2">
+                    <div className="rounded-xl bg-primary/10 p-2">
                       <Mail className="h-4 w-4 text-primary" />
                     </div>
                     <div>
@@ -555,7 +641,7 @@ export default function SettingsClient({ profile, loginActivity, securityScore }
                 </div>
                 <div className="flex items-center justify-between py-1">
                   <div className="flex items-center gap-3">
-                    <div className="rounded-full bg-primary/[0.08] p-2">
+                    <div className="rounded-xl bg-primary/10 p-2">
                       <Smartphone className="h-4 w-4 text-primary" />
                     </div>
                     <div>
@@ -621,11 +707,11 @@ export default function SettingsClient({ profile, loginActivity, securityScore }
 
             {/* Spending Alerts Link */}
             <Link href="/settings/alerts" className="block">
-              <Card className="hover:border-primary/50 transition-colors">
+              <Card variant="raised" interactive>
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="rounded-full bg-amber-500/10 p-2.5">
+                      <div className="rounded-xl bg-amber-500/10 p-2.5">
                         <Zap className="h-4 w-4 text-amber-500" />
                       </div>
                       <div>

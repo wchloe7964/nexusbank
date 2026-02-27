@@ -24,6 +24,7 @@ import {
   TrendingUp,
   Shield,
   Calculator,
+  MessageSquare,
 } from 'lucide-react'
 
 export interface NavItem {
@@ -90,6 +91,7 @@ export const navigationGroups: NavGroup[] = [
     collapsible: true,
     items: [
       { label: 'Disputes', href: '/disputes', icon: ShieldAlert },
+      { label: 'Complaints', href: '/my-complaints', icon: MessageSquare },
       { label: 'Notifications', href: '/notifications', icon: Bell },
       { label: 'Settings', href: '/settings', icon: Settings },
     ],

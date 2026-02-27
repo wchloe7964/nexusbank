@@ -241,7 +241,7 @@ export function CardsClient({ initialCards }: CardsClientProps) {
           <Card>
             <CardContent className="p-6 space-y-5">
               <h3 className="font-semibold tracking-tight flex items-center gap-2">
-                <div className="rounded-full bg-primary/[0.08] p-2">
+                <div className="rounded-xl bg-primary/10 p-2">
                   <Settings className="h-4 w-4 text-primary" />
                 </div>
                 Card Controls
@@ -250,7 +250,7 @@ export function CardsClient({ initialCards }: CardsClientProps) {
               {/* Freeze */}
               <div className="flex items-center justify-between py-1">
                 <div className="flex items-center gap-3">
-                  <div className="rounded-full bg-blue-500/10 p-2">
+                  <div className="rounded-xl bg-blue-500/10 p-2">
                     <Snowflake className="h-4 w-4 text-blue-500" />
                   </div>
                   <div>
@@ -268,7 +268,7 @@ export function CardsClient({ initialCards }: CardsClientProps) {
               {/* Contactless */}
               <div className="flex items-center justify-between py-1">
                 <div className="flex items-center gap-3">
-                  <div className="rounded-full bg-green-500/10 p-2">
+                  <div className="rounded-xl bg-green-500/10 p-2">
                     <Wifi className="h-4 w-4 text-green-500" />
                   </div>
                   <div>
@@ -286,7 +286,7 @@ export function CardsClient({ initialCards }: CardsClientProps) {
               {/* Online Payments */}
               <div className="flex items-center justify-between py-1">
                 <div className="flex items-center gap-3">
-                  <div className="rounded-full bg-purple-500/10 p-2">
+                  <div className="rounded-xl bg-purple-500/10 p-2">
                     <Globe className="h-4 w-4 text-purple-500" />
                   </div>
                   <div>
@@ -304,7 +304,7 @@ export function CardsClient({ initialCards }: CardsClientProps) {
               {/* ATM Withdrawals */}
               <div className="flex items-center justify-between py-1">
                 <div className="flex items-center gap-3">
-                  <div className="rounded-full bg-amber-500/10 p-2">
+                  <div className="rounded-xl bg-amber-500/10 p-2">
                     <Landmark className="h-4 w-4 text-amber-500" />
                   </div>
                   <div>
@@ -326,7 +326,7 @@ export function CardsClient({ initialCards }: CardsClientProps) {
             <CardContent className="p-6 space-y-5">
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold tracking-tight flex items-center gap-2">
-                  <div className="rounded-full bg-primary/[0.08] p-2">
+                  <div className="rounded-xl bg-primary/10 p-2">
                     <ShieldCheck className="h-4 w-4 text-primary" />
                   </div>
                   Spending Limits
@@ -405,7 +405,7 @@ export function CardsClient({ initialCards }: CardsClientProps) {
           <Card>
             <CardContent className="p-6 space-y-5">
               <h3 className="font-semibold tracking-tight flex items-center gap-2">
-                <div className="rounded-full bg-primary/[0.08] p-2">
+                <div className="rounded-xl bg-primary/10 p-2">
                   <Eye className="h-4 w-4 text-primary" />
                 </div>
                 PIN & Security
@@ -414,7 +414,7 @@ export function CardsClient({ initialCards }: CardsClientProps) {
               {/* PIN Reveal */}
               <div className="flex items-center justify-between py-1">
                 <div className="flex items-center gap-3">
-                  <div className="rounded-full bg-cyan-500/10 p-2">
+                  <div className="rounded-xl bg-cyan-500/10 p-2">
                     {pinRevealed ? (
                       <EyeOff className="h-4 w-4 text-cyan-500" />
                     ) : (
@@ -457,7 +457,7 @@ export function CardsClient({ initialCards }: CardsClientProps) {
               {/* Report Lost/Stolen */}
               <div className="flex items-center justify-between py-1">
                 <div className="flex items-center gap-3">
-                  <div className="rounded-full bg-red-500/10 p-2">
+                  <div className="rounded-xl bg-red-500/10 p-2">
                     <AlertTriangle className="h-4 w-4 text-red-500" />
                   </div>
                   <div>

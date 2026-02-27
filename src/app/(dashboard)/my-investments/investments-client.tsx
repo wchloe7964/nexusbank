@@ -70,11 +70,11 @@ export function InvestmentsClient({ accounts }: Props) {
 
           return (
             <Link key={account.id} href={`/investments/${account.id}`}>
-              <Card className="cursor-pointer hover:border-primary transition-colors">
+              <Card variant="raised" interactive>
                 <CardContent className="p-5">
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-3">
-                      <div className={`rounded-full p-2.5 ${typeCfg?.bg ?? 'bg-gray-50'}`}>
+                      <div className={`rounded-xl p-2.5 ${typeCfg?.bg ?? 'bg-gray-50'}`}>
                         <TypeIcon className={`h-4 w-4 ${typeCfg?.color ?? 'text-gray-500'}`} />
                       </div>
                       <div>

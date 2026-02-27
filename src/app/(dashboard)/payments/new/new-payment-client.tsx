@@ -42,7 +42,7 @@ export function NewPaymentClient({ accounts }: NewPaymentClientProps) {
   function handleConfirm() {
     startTransition(async () => {
       try {
-        await createScheduledPayment({
+        const result = await createScheduledPayment({
           accountId,
           payeeName,
           sortCode,
@@ -52,6 +52,11 @@ export function NewPaymentClient({ accounts }: NewPaymentClientProps) {
           paymentType,
           reference: reference || undefined,
         })
+        if (result.blocked) {
+          setError(result.blockReason || 'This payment was blocked. Please contact support.')
+          setStep('form')
+          return
+        }
         setStep('success')
       } catch (e) {
         setError(e instanceof Error ? e.message : 'Failed to create payment. Please try again.')

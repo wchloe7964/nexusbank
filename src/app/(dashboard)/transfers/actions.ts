@@ -2,101 +2,147 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { requireAuth, validateAmount, verifyAccountOwnership } from '@/lib/validation'
+import { scoreFraud } from '@/lib/fraud/scoring-engine'
+import { checkTransaction } from '@/lib/kyc/aml-monitor'
+import { logAuditEvent } from '@/lib/audit'
+import { checkTransactionLimits, getUserKycLevel } from '@/lib/limits/check-limits'
+import { requiresSca, isScaChallengeVerified } from '@/lib/sca/sca-service'
 
 export async function executeTransfer(data: {
   fromAccountId: string
   toAccountId: string
   amount: number
   reference?: string
-}) {
+  scaChallengeId?: string
+}): Promise<{
+  success: boolean
+  fraudScore?: number
+  fraudDecision?: string
+  amlAlerts?: number
+  blocked?: boolean
+  blockReason?: string
+  requiresSca?: boolean
+}> {
   const supabase = await createClient()
+  const userId = await requireAuth(supabase)
 
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Not authenticated')
+  // Validate amount
+  validateAmount(data.amount, 'Transfer amount')
 
-  // Validate accounts belong to user
-  const { data: fromAccount, error: fromError } = await supabase
-    .from('accounts')
-    .select('id, balance, account_name')
-    .eq('id', data.fromAccountId)
-    .single()
+  if (data.fromAccountId === data.toAccountId) {
+    throw new Error('Cannot transfer to the same account')
+  }
 
-  if (fromError || !fromAccount) throw new Error('Source account not found')
+  // Verify both accounts belong to the authenticated user
+  const fromAccount = await verifyAccountOwnership(supabase, data.fromAccountId, userId)
+  const toAccount = await verifyAccountOwnership(supabase, data.toAccountId, userId)
 
-  const { data: toAccount, error: toError } = await supabase
-    .from('accounts')
-    .select('id, account_name')
-    .eq('id', data.toAccountId)
-    .single()
-
-  if (toError || !toAccount) throw new Error('Destination account not found')
-
-  if (Number(fromAccount.balance) < data.amount) {
+  if (Number(fromAccount.available_balance) < data.amount) {
     throw new Error('Insufficient funds')
   }
 
-  // Debit from source
-  const { error: debitError } = await supabase.rpc('transfer_between_accounts', {
+  // ── Transaction limits ──
+  const kycLevel = await getUserKycLevel(userId)
+  const limitCheck = await checkTransactionLimits(userId, data.amount, kycLevel)
+
+  if (!limitCheck.allowed) {
+    return {
+      success: false,
+      blocked: true,
+      blockReason: limitCheck.reason,
+    }
+  }
+
+  // ── SCA check ──
+  const needsSca = await requiresSca(data.amount)
+  if (needsSca) {
+    if (!data.scaChallengeId) {
+      return {
+        success: false,
+        requiresSca: true,
+        blocked: false,
+      }
+    }
+    const verified = await isScaChallengeVerified(data.scaChallengeId)
+    if (!verified) {
+      return {
+        success: false,
+        blocked: true,
+        blockReason: 'Security verification failed or expired. Please try again.',
+      }
+    }
+  }
+
+  // ── Fraud scoring ──
+  const fraudResult = await scoreFraud({
+    userId,
+    amount: data.amount,
+    counterpartyName: toAccount.account_name,
+    isNewPayee: false, // internal transfer
+  })
+
+  if (fraudResult.decision === 'block') {
+    await logAuditEvent({
+      eventType: 'fraud_event',
+      actorId: userId,
+      actorRole: 'customer',
+      targetTable: 'transactions',
+      targetId: null,
+      action: 'transfer_blocked_fraud',
+      details: {
+        amount: data.amount,
+        score: fraudResult.score,
+        factors: fraudResult.factors.map((f) => f.rule),
+      },
+    })
+    return {
+      success: false,
+      blocked: true,
+      blockReason: 'This transfer has been blocked by our fraud detection system. Please contact us if you believe this is an error.',
+      fraudScore: fraudResult.score,
+      fraudDecision: fraudResult.decision,
+    }
+  }
+
+  // ── AML monitoring ──
+  const amlResult = await checkTransaction({
+    userId,
+    amount: data.amount,
+    counterpartyName: toAccount.account_name,
+    type: 'debit',
+  })
+
+  if (!amlResult.passed) {
+    return {
+      success: false,
+      blocked: true,
+      blockReason: 'This transfer requires additional verification. Our compliance team will be in touch.',
+      amlAlerts: amlResult.alerts.length,
+    }
+  }
+
+  // ── Execute the transfer ──
+  const { error: rpcError } = await supabase.rpc('transfer_between_accounts', {
     p_from_account_id: data.fromAccountId,
     p_to_account_id: data.toAccountId,
     p_amount: data.amount,
     p_reference: data.reference || 'Internal Transfer',
   })
 
-  // If RPC doesn't exist, do manual update
-  if (debitError) {
-    // Manual transfer fallback
-    const { error: e1 } = await supabase
-      .from('accounts')
-      .update({ balance: Number(fromAccount.balance) - data.amount, available_balance: Number(fromAccount.balance) - data.amount })
-      .eq('id', data.fromAccountId)
-
-    if (e1) throw e1
-
-    const { data: destBalance } = await supabase
-      .from('accounts')
-      .select('balance')
-      .eq('id', data.toAccountId)
-      .single()
-
-    const newBalance = Number(destBalance?.balance || 0) + data.amount
-    const { error: e2 } = await supabase
-      .from('accounts')
-      .update({ balance: newBalance, available_balance: newBalance })
-      .eq('id', data.toAccountId)
-
-    if (e2) throw e2
-
-    // Create transaction records
-    await supabase.from('transactions').insert([
-      {
-        account_id: data.fromAccountId,
-        type: 'debit',
-        amount: data.amount,
-        currency_code: 'GBP',
-        description: `Transfer to ${toAccount.account_name}`,
-        reference: data.reference || 'Internal Transfer',
-        category: 'transfer',
-        status: 'completed',
-        transaction_date: new Date().toISOString(),
-      },
-      {
-        account_id: data.toAccountId,
-        type: 'credit',
-        amount: data.amount,
-        currency_code: 'GBP',
-        description: `Transfer from ${fromAccount.account_name}`,
-        reference: data.reference || 'Internal Transfer',
-        category: 'transfer',
-        status: 'completed',
-        transaction_date: new Date().toISOString(),
-      },
-    ])
+  if (rpcError) {
+    throw new Error('Transfer failed: ' + rpcError.message)
   }
 
   revalidatePath('/transfers')
   revalidatePath('/accounts')
   revalidatePath('/dashboard')
+  revalidatePath('/transactions')
 
-  return { success: true }
+  return {
+    success: true,
+    fraudScore: fraudResult.score,
+    fraudDecision: fraudResult.decision,
+    amlAlerts: amlResult.alerts.length,
+  }
 }

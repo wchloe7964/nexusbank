@@ -102,7 +102,7 @@ export function NotificationsClient({ initialNotifications }: NotificationsClien
                   }`}
                   onClick={() => handleMarkRead(notification.id)}
                 >
-                  <div className={`rounded-full p-2.5 mt-0.5 ${colorClass}`}>
+                  <div className={`rounded-xl p-2.5 mt-0.5 ${colorClass}`}>
                     <Icon className="h-4 w-4" />
                   </div>
                   <div className="flex-1 min-w-0">

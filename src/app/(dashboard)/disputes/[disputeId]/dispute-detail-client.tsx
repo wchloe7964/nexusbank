@@ -104,7 +104,7 @@ export function DisputeDetailClient({ dispute }: DisputeDetailClientProps) {
       <Card>
         <CardContent className="p-6">
           <div className="flex items-start gap-4 mb-4">
-            <div className="rounded-full bg-red-500/10 p-3">
+            <div className="rounded-xl bg-red-500/10 p-3">
               <ReasonIcon className="h-6 w-6 text-red-500" />
             </div>
             <div>

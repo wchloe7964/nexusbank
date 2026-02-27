@@ -74,10 +74,13 @@ export function BottomNav() {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  'flex flex-1 flex-col items-center justify-center gap-0.5 py-2 transition-colors',
+                  'flex flex-1 flex-col items-center justify-center gap-0.5 py-2 transition-colors relative',
                   isActive ? 'text-white' : 'text-white/60',
                 )}
               >
+                {isActive && (
+                  <span className="absolute top-1 h-1 w-1 rounded-full bg-white" />
+                )}
                 <item.icon className={cn('h-5 w-5', isActive && 'stroke-[2.5]')} />
                 <span className={cn('text-[10px]', isActive ? 'font-bold' : 'font-medium')}>
                   {item.label}
@@ -92,7 +95,7 @@ export function BottomNav() {
       {moreOpen && (
         <div className="fixed inset-0 z-[60] lg:hidden">
           <div className="fixed inset-0 bg-black/40 backdrop-blur-[2px]" onClick={() => setMoreOpen(false)} />
-          <div className="fixed bottom-0 left-0 right-0 z-[60] max-h-[80vh] rounded-t-2xl bg-card shadow-[0_-8px_30px_rgba(0,0,0,0.15)] animate-slide-up flex flex-col">
+          <div className="fixed bottom-0 left-0 right-0 z-[60] max-h-[80vh] rounded-t-3xl glass-strong border-t border-border/50 shadow-xl animate-slide-up flex flex-col">
             {/* Handle bar */}
             <div className="flex justify-center pt-3 pb-1">
               <div className="h-1 w-10 rounded-full bg-muted-foreground/20" />

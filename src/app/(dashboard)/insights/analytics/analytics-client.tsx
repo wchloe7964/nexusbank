@@ -113,7 +113,7 @@ export function AnalyticsClient({ merchants, subscriptions, forecast, categoryTr
                       <div className="flex h-7 w-7 items-center justify-center rounded-full bg-muted text-xs font-bold text-muted-foreground">
                         {index + 1}
                       </div>
-                      <div className={`rounded-full p-2 ${cat?.bg || 'bg-gray-50 dark:bg-gray-950'}`}>
+                      <div className={`rounded-xl p-2 ${cat?.bg || 'bg-gray-50 dark:bg-gray-950'}`}>
                         {Icon && <Icon className={`h-3.5 w-3.5 ${cat?.color || 'text-gray-500'}`} />}
                       </div>
                       <div>
@@ -161,7 +161,7 @@ export function AnalyticsClient({ merchants, subscriptions, forecast, categoryTr
                 return (
                   <div key={sub.counterparty_name} className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted/30 transition-colors">
                     <div className="flex items-center gap-3">
-                      <div className={`rounded-full p-2.5 ${cat?.bg || 'bg-gray-50 dark:bg-gray-950'}`}>
+                      <div className={`rounded-xl p-2.5 ${cat?.bg || 'bg-gray-50 dark:bg-gray-950'}`}>
                         <Icon className={`h-4 w-4 ${cat?.color || 'text-gray-500'}`} />
                       </div>
                       <div>
@@ -372,7 +372,7 @@ export function AnalyticsClient({ merchants, subscriptions, forecast, categoryTr
       <Card className="border-purple-500/20 bg-purple-500/[0.03]">
         <CardContent className="p-4">
           <div className="flex items-start gap-3">
-            <div className="rounded-full bg-purple-500/10 p-2 shrink-0">
+            <div className="rounded-xl bg-purple-500/10 p-2 shrink-0">
               <AlertTriangle className="h-4 w-4 text-purple-500" />
             </div>
             <div>

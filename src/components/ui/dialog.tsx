@@ -34,7 +34,7 @@ export function Dialog({ open, onClose, children, title }: DialogProps) {
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-[2px] p-4 animate-in"
       onClick={(e) => { if (e.target === overlayRef.current) onClose() }}
     >
-      <div className="relative w-full max-w-lg rounded-lg bg-card p-6 shadow-[0_8px_30px_rgba(0,0,0,0.12)] border border-border animate-scale-in">
+      <div className="relative w-full max-w-lg rounded-2xl bg-card p-6 shadow-xl border border-border/50 animate-scale-in">
         <button onClick={onClose} className="absolute right-4 top-4 rounded-lg p-1 opacity-50 hover:opacity-100 hover:bg-muted transition-all">
           <X className="h-4 w-4" />
         </button>

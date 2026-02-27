@@ -18,7 +18,11 @@ function useGroupOpen(group: NavGroup, pathname: string) {
   return hasActiveChild
 }
 
-export function Sidebar() {
+interface SidebarProps {
+  userName?: string
+}
+
+export function Sidebar({ userName }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
   const [collapsed, setCollapsed] = useState(false)
@@ -42,10 +46,17 @@ export function Sidebar() {
     router.push('/login')
   }
 
+  const initials = userName
+    ?.split(' ')
+    .map((n) => n[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase()
+
   return (
     <aside
       className={cn(
-        'hidden lg:flex flex-col bg-sidebar text-sidebar-foreground transition-all duration-300 ease-in-out',
+        'hidden lg:flex flex-col glass-sidebar text-sidebar-foreground border-r border-white/[0.06] transition-all duration-300 ease-in-out',
         collapsed ? 'w-[72px]' : 'w-[260px]'
       )}
     >
@@ -88,8 +99,19 @@ export function Sidebar() {
         ))}
       </nav>
 
-      {/* Sign out */}
-      <div className="px-3 pb-4">
+      {/* User profile + Sign out */}
+      <div className="border-t border-white/[0.08] px-3 py-3 mt-auto">
+        {!collapsed && userName && (
+          <div className="flex items-center gap-3 px-3 py-2 rounded-lg mb-1">
+            <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary/40 to-primary/10 flex items-center justify-center text-xs font-semibold text-white">
+              {initials}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-white/80 truncate">{userName}</p>
+              <p className="text-[10px] text-white/40">Personal Account</p>
+            </div>
+          </div>
+        )}
         <button
           onClick={handleSignOut}
           className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-white/40 hover:bg-white/[0.06] hover:text-white/70 transition-all duration-200"
@@ -159,7 +181,7 @@ function SidebarGroup({
       {/* Group items */}
       <div
         className={cn(
-          'space-y-0.5 overflow-hidden transition-all duration-200',
+          'space-y-0.5 overflow-hidden transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)]',
           group.collapsible && !collapsed && !isOpen && 'max-h-0 opacity-0',
           (!group.collapsible || collapsed || isOpen) && 'max-h-[500px] opacity-100',
         )}
@@ -171,16 +193,16 @@ function SidebarGroup({
               key={item.href}
               href={item.href}
               className={cn(
-                'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200',
+                'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200 relative',
                 isActive
-                  ? 'bg-primary/20 text-white'
+                  ? 'bg-white/[0.1] text-white font-semibold before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:h-5 before:w-[3px] before:rounded-full before:bg-primary'
                   : 'text-white/50 hover:bg-white/[0.06] hover:text-white/80'
               )}
               title={collapsed ? item.label : undefined}
               aria-current={isActive ? 'page' : undefined}
               aria-label={item.label}
             >
-              <item.icon className={cn('h-[18px] w-[18px] shrink-0', isActive && 'text-primary')} />
+              <item.icon className={cn('h-[18px] w-[18px] shrink-0 transition-colors', isActive && 'text-primary drop-shadow-[0_0_6px_rgba(0,102,255,0.4)]')} />
               {!collapsed && <span>{item.label}</span>}
             </Link>
           )

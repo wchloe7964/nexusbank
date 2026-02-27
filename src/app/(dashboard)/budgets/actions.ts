@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { requireAuth, validateAmount } from '@/lib/validation'
 
 export async function createBudget(data: {
   category: string
@@ -9,11 +10,15 @@ export async function createBudget(data: {
   alertThreshold: number
 }) {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Not authenticated')
+  const userId = await requireAuth(supabase)
+
+  validateAmount(data.monthlyLimit, 'Monthly limit')
+  if (data.alertThreshold < 0 || data.alertThreshold > 1) {
+    throw new Error('Alert threshold must be between 0 and 1')
+  }
 
   const { error } = await supabase.from('budgets').insert({
-    user_id: user.id,
+    user_id: userId,
     category: data.category,
     monthly_limit: data.monthlyLimit,
     alert_threshold: data.alertThreshold,
@@ -33,8 +38,12 @@ export async function updateBudget(budgetId: string, data: {
   alertThreshold: number
 }) {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Not authenticated')
+  const userId = await requireAuth(supabase)
+
+  validateAmount(data.monthlyLimit, 'Monthly limit')
+  if (data.alertThreshold < 0 || data.alertThreshold > 1) {
+    throw new Error('Alert threshold must be between 0 and 1')
+  }
 
   const { error } = await supabase
     .from('budgets')
@@ -44,6 +53,7 @@ export async function updateBudget(budgetId: string, data: {
       updated_at: new Date().toISOString(),
     })
     .eq('id', budgetId)
+    .eq('user_id', userId)
 
   if (error) throw new Error(error.message)
 
@@ -53,13 +63,13 @@ export async function updateBudget(budgetId: string, data: {
 
 export async function deleteBudget(budgetId: string) {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Not authenticated')
+  const userId = await requireAuth(supabase)
 
   const { error } = await supabase
     .from('budgets')
     .delete()
     .eq('id', budgetId)
+    .eq('user_id', userId)
 
   if (error) throw new Error(error.message)
 

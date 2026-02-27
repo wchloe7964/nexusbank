@@ -116,7 +116,7 @@ export function LoansClient({ loans: initialLoans, accounts }: Props) {
               <CardContent className="p-5">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <div className={`rounded-full p-2.5 ${typeCfg?.bg ?? 'bg-gray-50'}`}>
+                    <div className={`rounded-xl p-2.5 ${typeCfg?.bg ?? 'bg-gray-50'}`}>
                       <TypeIcon className={`h-4 w-4 ${typeCfg?.color ?? 'text-gray-500'}`} />
                     </div>
                     <div>

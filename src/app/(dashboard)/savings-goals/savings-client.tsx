@@ -187,11 +187,11 @@ export function SavingsClient({ goals, savingsAccounts }: SavingsClientProps) {
                 const rem = Number(goal.target_amount) - Number(goal.current_amount)
                 return (
                   <Link key={goal.id} href={`/savings-goals/${goal.id}`}>
-                    <Card className="cursor-pointer transition-all duration-200 hover:border-primary h-full">
+                    <Card variant="raised" interactive className="h-full">
                       <CardContent className="p-5">
                         <div className="flex items-start justify-between mb-3">
                           <div className="flex items-center gap-3">
-                            <div className={cn('rounded-full p-2.5', colors.bg)}><Icon className={cn('h-4 w-4', colors.text)} /></div>
+                            <div className={cn('rounded-xl p-2.5', colors.bg)}><Icon className={cn('h-4 w-4', colors.text)} /></div>
                             <div>
                               <p className="font-medium text-sm">{goal.name}</p>
                               <Badge variant="secondary" className="text-[10px] mt-0.5">{goalTypeLabels[goal.goal_type as SavingsGoalType]}</Badge>
@@ -221,10 +221,10 @@ export function SavingsClient({ goals, savingsAccounts }: SavingsClientProps) {
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {completedGoals.map((goal) => (
                   <Link key={goal.id} href={`/savings-goals/${goal.id}`}>
-                    <Card className="cursor-pointer transition-all duration-200 hover:border-primary opacity-75">
+                    <Card variant="raised" interactive className="opacity-75">
                       <CardContent className="p-5">
                         <div className="flex items-center gap-3">
-                          <div className="rounded-full bg-emerald-500/10 p-2.5"><CheckCircle className="h-4 w-4 text-emerald-500" /></div>
+                          <div className="rounded-xl bg-emerald-500/10 p-2.5"><CheckCircle className="h-4 w-4 text-emerald-500" /></div>
                           <div>
                             <p className="font-medium text-sm">{goal.name}</p>
                             <p className="text-xs text-muted-foreground tabular-nums">{formatGBP(Number(goal.current_amount))} saved</p>

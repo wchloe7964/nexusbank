@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { requireAuth } from '@/lib/validation'
 
 export async function requestOverdraftIncrease(data: {
   accountId: string
@@ -9,40 +10,29 @@ export async function requestOverdraftIncrease(data: {
   reason?: string
 }) {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Not authenticated')
+  const userId = await requireAuth(supabase)
 
   // Validate the requested limit
-  if (data.requestedLimit <= 0 || data.requestedLimit > 25000) {
+  if (!Number.isFinite(data.requestedLimit) || data.requestedLimit <= 0 || data.requestedLimit > 25000) {
     throw new Error('Overdraft limit must be between £1 and £25,000')
   }
 
-  // Verify the account belongs to the user
-  const { data: account, error: accountError } = await supabase
-    .from('accounts')
-    .select('id, overdraft_limit, account_name')
-    .eq('id', data.accountId)
-    .single()
+  // Use the atomic RPC — handles locking, ownership verification,
+  // account type check, available_balance update, and audit logging
+  const { error: rpcError } = await supabase.rpc('change_overdraft_limit', {
+    p_account_id: data.accountId,
+    p_new_limit: data.requestedLimit,
+  })
 
-  if (accountError || !account) throw new Error('Account not found')
-
-  if (data.requestedLimit <= account.overdraft_limit) {
-    throw new Error('Requested limit must be higher than current limit')
+  if (rpcError) {
+    throw new Error(rpcError.message)
   }
 
-  // Auto-approve for demo
-  const { error } = await supabase
-    .from('accounts')
-    .update({ overdraft_limit: data.requestedLimit })
-    .eq('id', data.accountId)
-
-  if (error) throw new Error(error.message)
-
-  // Create notification
+  // Create notification (best-effort)
   await supabase.from('notifications').insert({
-    user_id: user.id,
+    user_id: userId,
     title: 'Overdraft Increase Approved',
-    message: `Your overdraft on ${account.account_name} has been increased to £${data.requestedLimit.toLocaleString()}.`,
+    message: `Your overdraft has been increased to £${data.requestedLimit.toLocaleString()}.`,
     type: 'account',
     action_url: '/accounts/overdraft',
   })

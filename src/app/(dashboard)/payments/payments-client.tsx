@@ -84,7 +84,7 @@ export function PaymentsClient({ initialPayments }: PaymentsClientProps) {
     return (
       <div className="flex items-center justify-between px-5 py-4 hover:bg-muted/30 transition-colors">
         <div className="flex items-center gap-3">
-          <div className="rounded-full bg-primary/[0.08] p-2.5">
+          <div className="rounded-xl bg-primary/10 p-2.5">
             <Icon className="h-4 w-4 text-primary" />
           </div>
           <div>

@@ -122,7 +122,7 @@ export function StandingOrdersClient({ standingOrders, accounts, payees }: Stand
       <Card className="border-purple-500/20 bg-purple-500/[0.03]">
         <CardContent className="p-4">
           <div className="flex items-start gap-3">
-            <div className="rounded-full bg-purple-500/10 p-2 shrink-0">
+            <div className="rounded-xl bg-purple-500/10 p-2 shrink-0">
               <Shield className="h-4 w-4 text-purple-500" />
             </div>
             <div>
@@ -295,7 +295,7 @@ function SORow({
       className="flex items-center justify-between px-5 py-4 hover:bg-muted/30 transition-colors"
     >
       <div className="flex items-center gap-3">
-        <div className="rounded-full bg-purple-500/10 p-2.5">
+        <div className="rounded-xl bg-purple-500/10 p-2.5">
           <CalendarClock className="h-4 w-4 text-purple-500" />
         </div>
         <div>

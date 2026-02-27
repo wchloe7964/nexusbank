@@ -180,7 +180,7 @@ export function RewardsClient({ summary, recentRewards, accounts }: RewardsClien
                   key={category}
                   className="flex items-center gap-3 rounded-lg border p-3 hover:bg-muted/30 transition-colors"
                 >
-                  <div className={`rounded-full p-2.5 ${iconConfig?.bg || 'bg-gray-500/10'}`}>
+                  <div className={`rounded-xl p-2.5 ${iconConfig?.bg || 'bg-gray-500/10'}`}>
                     <Icon className={`h-4 w-4 ${iconConfig?.color || 'text-gray-500'}`} />
                   </div>
                   <div>
@@ -213,7 +213,7 @@ export function RewardsClient({ summary, recentRewards, accounts }: RewardsClien
                 return (
                   <div key={item.category} className="flex items-center justify-between py-3 first:pt-0 last:pb-0">
                     <div className="flex items-center gap-3">
-                      <div className={`rounded-full p-2 ${iconConfig?.bg || 'bg-gray-500/10'}`}>
+                      <div className={`rounded-xl p-2 ${iconConfig?.bg || 'bg-gray-500/10'}`}>
                         <Icon className={`h-3.5 w-3.5 ${iconConfig?.color || 'text-gray-500'}`} />
                       </div>
                       <div>
@@ -246,7 +246,7 @@ export function RewardsClient({ summary, recentRewards, accounts }: RewardsClien
                 return (
                   <div key={reward.id} className="flex items-center justify-between px-5 py-3">
                     <div className="flex items-center gap-3">
-                      <div className={`rounded-full p-2 ${iconConfig?.bg || 'bg-gray-500/10'}`}>
+                      <div className={`rounded-xl p-2 ${iconConfig?.bg || 'bg-gray-500/10'}`}>
                         <Icon className={`h-3.5 w-3.5 ${iconConfig?.color || 'text-gray-500'}`} />
                       </div>
                       <div>
@@ -276,7 +276,7 @@ export function RewardsClient({ summary, recentRewards, accounts }: RewardsClien
       <Card className="border-emerald-500/20 bg-emerald-500/[0.03]">
         <CardContent className="p-4">
           <div className="flex items-start gap-3">
-            <div className="rounded-full bg-emerald-500/10 p-2 shrink-0">
+            <div className="rounded-xl bg-emerald-500/10 p-2 shrink-0">
               <Gift className="h-4 w-4 text-emerald-500" />
             </div>
             <div>

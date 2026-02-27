@@ -2,31 +2,28 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { randomInt } from 'crypto'
 import type { EnrollmentData, EnrollmentResult } from '@/lib/types'
+import { logAuditEvent } from '@/lib/audit'
 
 function generateAccountNumber(): string {
-  return String(Math.floor(10000000 + Math.random() * 90000000))
+  return String(randomInt(10000000, 100000000))
 }
 
 function generateMembershipNumber(): string {
   // 12-digit number starting with 5 (NexusBank personal prefix)
-  return '5' + String(Math.floor(10000000000 + Math.random() * 90000000000))
+  const suffix = String(randomInt(10000000000, 100000000000))
+  return '5' + suffix
 }
 
 function generateSortCode(): string {
-  // NexusBank sort codes start with 20 (like a real UK bank prefix)
-  const part2 = String(Math.floor(10 + Math.random() * 90))
-  const part3 = String(Math.floor(10 + Math.random() * 90))
+  const part2 = String(randomInt(10, 100))
+  const part3 = String(randomInt(10, 100))
   return `20-${part2}-${part3}`
 }
 
-function generateCardNumber(): string {
-  // 16-digit card number starting with 4 (Visa-style)
-  let num = '4539'
-  for (let i = 0; i < 12; i++) {
-    num += String(Math.floor(Math.random() * 10))
-  }
-  return num
+function generateCardLast4(): string {
+  return String(randomInt(1000, 10000))
 }
 
 export async function enrollUser(data: EnrollmentData): Promise<EnrollmentResult> {
@@ -37,10 +34,9 @@ export async function enrollUser(data: EnrollmentData): Promise<EnrollmentResult
   const membershipNumber = generateMembershipNumber()
   const sortCode = generateSortCode()
   const accountNumber = generateAccountNumber()
-  const cardNumber = generateCardNumber()
-  const cardLast4 = cardNumber.slice(-4)
+  const cardLast4 = generateCardLast4()
 
-  // 1. Create auth user with all identifiers in metadata
+  // 1. Create auth user — do NOT store full card number in metadata
   const { data: authData, error: authError } = await supabase.auth.signUp({
     email: data.email,
     password: data.password,
@@ -49,7 +45,7 @@ export async function enrollUser(data: EnrollmentData): Promise<EnrollmentResult
         full_name: fullName,
         last_name: data.lastName.toLowerCase(),
         membership_number: membershipNumber,
-        card_number: cardNumber,
+        card_last4: cardLast4,
         sort_code: sortCode,
         account_number: accountNumber,
       },
@@ -127,13 +123,12 @@ export async function enrollUser(data: EnrollmentData): Promise<EnrollmentResult
     })
   }
 
-  // 5. Store all login identifiers in user_metadata
+  // 5. Store login identifiers in user_metadata — NO full card number
   await admin.auth.admin.updateUserById(userId, {
     user_metadata: {
       full_name: fullName,
       last_name: data.lastName.toLowerCase(),
       membership_number: membershipNumber,
-      card_number: cardNumber,
       card_last4: cardLast4,
       sort_code: sortCode,
       account_number: accountNumber,
@@ -147,6 +142,41 @@ export async function enrollUser(data: EnrollmentData): Promise<EnrollmentResult
     message: `Your Everyday Current Account has been created. Your membership number is ${membershipNumber}. Keep it safe — you'll use it to log in.`,
     type: 'system',
     is_read: false,
+  })
+
+  // 7. Create initial KYC verification (pending — triggers KYC queue for admin review)
+  await admin.from('kyc_verifications').insert({
+    user_id: userId,
+    verification_level: 'basic',
+    status: 'pending',
+    risk_rating: 'low',
+    identity_verified: false,
+    address_verified: false,
+    pep_checked: false,
+    sanctions_checked: false,
+  })
+
+  // Update profile KYC status
+  await admin.from('profiles').update({
+    kyc_status: 'pending',
+    risk_rating: 'low',
+    customer_category: 'retail',
+    pep_status: false,
+    sanctions_clear: false,
+  }).eq('id', userId)
+
+  // 8. Audit trail for new account registration
+  await logAuditEvent({
+    eventType: 'auth_event',
+    actorId: userId,
+    actorRole: 'customer',
+    targetTable: 'profiles',
+    targetId: userId,
+    action: 'account_registered',
+    details: {
+      membership_number: membershipNumber,
+      kyc_status: 'pending',
+    },
   })
 
   return { membershipNumber, sortCode, accountNumber, cardLast4 }

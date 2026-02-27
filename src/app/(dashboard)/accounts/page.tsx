@@ -63,11 +63,11 @@ export default async function AccountsPage() {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {accounts.map((account) => (
             <Link key={account.id} href={`/accounts/${account.id}`}>
-              <Card className="cursor-pointer transition-all duration-200 hover:border-primary">
+              <Card variant="raised" interactive>
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="rounded-full bg-primary/[0.08] p-2.5">
+                      <div className="rounded-xl bg-primary/10 p-2.5">
                         <Wallet className="h-4 w-4 text-primary" />
                       </div>
                       <div>

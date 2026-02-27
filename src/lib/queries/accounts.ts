@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { toPence, fromPence } from '@/lib/validation'
 import type { Account } from '@/lib/types'
 
 export async function getAccounts(): Promise<Account[]> {
@@ -30,5 +31,7 @@ export async function getAccountById(accountId: string): Promise<Account | null>
 
 export async function getTotalBalance(): Promise<number> {
   const accounts = await getAccounts()
-  return accounts.reduce((sum, acc) => sum + Number(acc.balance), 0)
+  // Use integer pence arithmetic to avoid floating-point errors
+  const totalPence = accounts.reduce((sum, acc) => sum + toPence(acc.balance), 0)
+  return fromPence(totalPence)
 }

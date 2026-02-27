@@ -18,6 +18,16 @@ export async function saveTransactionNote(data: {
 
   if (note && note.length > 500) throw new Error('Note must be 500 characters or less')
 
+  // Verify the transaction belongs to an account owned by the user
+  const { data: transaction, error: txError } = await supabase
+    .from('transactions')
+    .select('id, account_id, accounts!inner(user_id)')
+    .eq('id', data.transactionId)
+    .eq('accounts.user_id', user.id)
+    .single()
+
+  if (txError || !transaction) throw new Error('Transaction not found or access denied')
+
   // Upsert: insert or update based on unique constraint
   const { error } = await supabase
     .from('transaction_notes')

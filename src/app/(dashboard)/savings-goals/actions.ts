@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { requireAuth, validateAmount, verifyAccountOwnership } from '@/lib/validation'
 import type { SavingsGoalColor, SavingsGoalType } from '@/lib/types'
 
 export async function createSavingsGoal(data: {
@@ -13,13 +14,18 @@ export async function createSavingsGoal(data: {
   color: SavingsGoalColor
 }) {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Not authenticated')
+  const userId = await requireAuth(supabase)
+
+  if (!data.name.trim()) throw new Error('Goal name is required')
+  validateAmount(data.targetAmount, 'Target amount')
+
+  // Verify the linked account belongs to the user
+  await verifyAccountOwnership(supabase, data.accountId, userId)
 
   const { error } = await supabase.from('savings_goals').insert({
-    user_id: user.id,
+    user_id: userId,
     account_id: data.accountId,
-    name: data.name,
+    name: data.name.trim(),
     goal_type: data.goalType,
     target_amount: data.targetAmount,
     target_date: data.targetDate || null,
@@ -41,20 +47,22 @@ export async function updateSavingsGoal(goalId: string, data: {
   color: SavingsGoalColor
 }) {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Not authenticated')
+  const userId = await requireAuth(supabase)
+
+  if (!data.name.trim()) throw new Error('Goal name is required')
+  validateAmount(data.targetAmount, 'Target amount')
 
   const { error } = await supabase
     .from('savings_goals')
     .update({
-      name: data.name,
+      name: data.name.trim(),
       goal_type: data.goalType,
       target_amount: data.targetAmount,
       target_date: data.targetDate || null,
       color: data.color,
-      updated_at: new Date().toISOString(),
     })
     .eq('id', goalId)
+    .eq('user_id', userId)
 
   if (error) throw new Error(error.message)
 
@@ -65,30 +73,29 @@ export async function updateSavingsGoal(goalId: string, data: {
 
 export async function deleteSavingsGoal(goalId: string) {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Not authenticated')
+  const userId = await requireAuth(supabase)
 
-  // Get the goal first to return funds to account
-  const { data: goal } = await supabase
+  // Verify the goal belongs to the user and get its data
+  const { data: goal, error: goalError } = await supabase
     .from('savings_goals')
     .select('current_amount, account_id')
     .eq('id', goalId)
+    .eq('user_id', userId)
     .single()
 
-  if (goal && Number(goal.current_amount) > 0) {
-    // Return funds to the linked account
-    const { data: account } = await supabase
-      .from('accounts')
-      .select('balance, available_balance')
-      .eq('id', goal.account_id)
-      .single()
+  if (goalError || !goal) throw new Error('Savings goal not found or access denied')
 
-    if (account) {
-      const newBalance = Number(account.balance) + Number(goal.current_amount)
-      await supabase
-        .from('accounts')
-        .update({ balance: newBalance, available_balance: newBalance })
-        .eq('id', goal.account_id)
+  // If goal has funds, return them to the linked account atomically via RPC
+  if (Number(goal.current_amount) > 0) {
+    const { error: rpcError } = await supabase.rpc('adjust_savings_goal', {
+      p_goal_id: goalId,
+      p_amount: -Number(goal.current_amount),
+      p_description: 'Savings goal closed — funds returned',
+    })
+
+    // If the atomic RPC fails, do NOT fall back to manual updates — throw instead
+    if (rpcError) {
+      throw new Error('Failed to return funds to account: ' + rpcError.message)
     }
   }
 
@@ -96,6 +103,7 @@ export async function deleteSavingsGoal(goalId: string) {
     .from('savings_goals')
     .delete()
     .eq('id', goalId)
+    .eq('user_id', userId)
 
   if (error) throw new Error(error.message)
 
@@ -107,13 +115,14 @@ export async function deleteSavingsGoal(goalId: string) {
 
 export async function adjustSavingsGoal(goalId: string, amount: number, isDeposit: boolean) {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Not authenticated')
+  await requireAuth(supabase)
+
+  validateAmount(amount, isDeposit ? 'Deposit amount' : 'Withdrawal amount')
 
   const adjustedAmount = isDeposit ? amount : -amount
-  const description = isDeposit ? `Savings deposit to goal` : `Withdrawal from savings goal`
+  const description = isDeposit ? 'Savings deposit to goal' : 'Withdrawal from savings goal'
 
-  // Try RPC first
+  // Use the atomic RPC — it handles locking, ownership, and balance checks
   const { error: rpcError } = await supabase.rpc('adjust_savings_goal', {
     p_goal_id: goalId,
     p_amount: adjustedAmount,
@@ -121,59 +130,7 @@ export async function adjustSavingsGoal(goalId: string, amount: number, isDeposi
   })
 
   if (rpcError) {
-    // Manual fallback
-    const { data: goal } = await supabase
-      .from('savings_goals')
-      .select('*, account:accounts(*)')
-      .eq('id', goalId)
-      .single()
-
-    if (!goal) throw new Error('Goal not found')
-
-    const newGoalAmount = Number(goal.current_amount) + adjustedAmount
-    if (newGoalAmount < 0) throw new Error('Cannot withdraw more than current balance')
-
-    const account = goal.account
-    if (!account) throw new Error('Linked account not found')
-
-    const newAccountBalance = Number(account.balance) - adjustedAmount
-    if (isDeposit && newAccountBalance < 0) throw new Error('Insufficient funds in account')
-
-    // Update account balance
-    const { error: acctErr } = await supabase
-      .from('accounts')
-      .update({
-        balance: newAccountBalance,
-        available_balance: newAccountBalance,
-      })
-      .eq('id', goal.account_id)
-
-    if (acctErr) throw new Error(acctErr.message)
-
-    // Update goal
-    const isCompleted = newGoalAmount >= Number(goal.target_amount)
-    const { error: goalErr } = await supabase
-      .from('savings_goals')
-      .update({
-        current_amount: newGoalAmount,
-        is_completed: isCompleted,
-        completed_at: isCompleted ? new Date().toISOString() : null,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', goalId)
-
-    if (goalErr) throw new Error(goalErr.message)
-
-    // Create transaction record
-    await supabase.from('transactions').insert({
-      account_id: goal.account_id,
-      type: isDeposit ? 'debit' : 'credit',
-      category: 'transfer',
-      amount: amount,
-      description: description,
-      status: 'completed',
-      transaction_date: new Date().toISOString(),
-    })
+    throw new Error(rpcError.message)
   }
 
   revalidatePath('/savings-goals')

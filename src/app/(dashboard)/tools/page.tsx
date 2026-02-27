@@ -49,10 +49,10 @@ export default function ToolsPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {tools.map((tool) => (
           <Link key={tool.href} href={tool.href}>
-            <Card className="cursor-pointer hover:border-primary transition-colors h-full">
+            <Card variant="raised" interactive className="h-full">
               <CardContent className="p-6">
                 <div className="flex items-start gap-4">
-                  <div className={`rounded-full p-3 ${tool.bg}`}>
+                  <div className={`rounded-xl p-3 ${tool.bg}`}>
                     <tool.icon className={`h-5 w-5 ${tool.color}`} />
                   </div>
                   <div>

@@ -137,6 +137,8 @@ export type PaymentStatus = 'active' | 'paused' | 'cancelled' | 'completed'
 
 export type NotificationType = 'transaction' | 'security' | 'account' | 'promotion' | 'system'
 
+export type UserRole = 'customer' | 'admin' | 'super_admin' | 'auditor'
+
 export interface Profile {
   id: string
   email: string
@@ -155,6 +157,9 @@ export interface Profile {
   notification_push: boolean
   rewards_balance: number
   theme_preference: 'light' | 'dark' | 'system'
+  role: UserRole
+  membership_number: string | null
+  security_score: number
   created_at: string
   updated_at: string
 }
@@ -272,6 +277,7 @@ export interface Payee {
   account_number: string
   reference: string | null
   is_favourite: boolean
+  first_used_at: string | null
   created_at: string
   updated_at: string
 }
@@ -582,4 +588,31 @@ export interface PeerComparison {
   category: string
   userAmount: number
   averageAmount: number
+}
+
+// Admin types
+export interface AdminDashboardStats {
+  total_customers: number
+  total_deposits: number
+  new_signups_30d: number
+  flagged_activity_30d: number
+  open_disputes: number
+  total_accounts: number
+}
+
+export interface CustomerListItem {
+  id: string
+  email: string
+  full_name: string
+  role: UserRole
+  created_at: string
+  phone_number: string | null
+  city: string | null
+  postcode: string | null
+  two_factor_enabled: boolean
+  membership_number: string | null
+  date_of_birth: string | null
+  country: string
+  security_score: number
+  account_count?: number
 }

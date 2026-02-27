@@ -143,7 +143,7 @@ export function OverdraftClient({ accounts }: OverdraftClientProps) {
             <CardContent className="p-5">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-3">
-                  <div className="rounded-full bg-amber-500/10 p-2.5">
+                  <div className="rounded-xl bg-amber-500/10 p-2.5">
                     <Gauge className="h-4 w-4 text-amber-500" />
                   </div>
                   <div>
@@ -252,7 +252,7 @@ export function OverdraftClient({ accounts }: OverdraftClientProps) {
       <Card className="border-blue-500/20 bg-blue-500/[0.03]">
         <CardContent className="p-4">
           <div className="flex items-start gap-3">
-            <div className="rounded-full bg-blue-500/10 p-2 shrink-0">
+            <div className="rounded-xl bg-blue-500/10 p-2 shrink-0">
               <Shield className="h-4 w-4 text-blue-500" />
             </div>
             <div>

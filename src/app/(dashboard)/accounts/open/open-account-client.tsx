@@ -167,12 +167,12 @@ export function OpenAccountClient() {
             return (
               <Card
                 key={config.type}
-                className="cursor-pointer hover:border-primary/50 transition-colors"
+                variant="raised" interactive
                 onClick={() => selectType(config)}
               >
                 <CardContent className="p-5">
                   <div className="flex items-start gap-3 mb-3">
-                    <div className={cn('rounded-full p-2.5', config.bg)}>
+                    <div className={cn('rounded-xl p-2.5', config.bg)}>
                       <Icon className={cn('h-5 w-5', config.color)} />
                     </div>
                     <div>
@@ -208,7 +208,7 @@ export function OpenAccountClient() {
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center gap-3 mb-6">
-              <div className={cn('rounded-full p-2.5', selectedType.bg)}>
+              <div className={cn('rounded-xl p-2.5', selectedType.bg)}>
                 <selectedType.icon className={cn('h-5 w-5', selectedType.color)} />
               </div>
               <div>

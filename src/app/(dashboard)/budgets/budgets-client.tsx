@@ -205,11 +205,11 @@ export function BudgetsClient({ budgets }: BudgetsClientProps) {
             const pct = Math.min(budget.percentage, 100)
 
             return (
-              <Card key={budget.id} className="cursor-pointer hover:border-primary/50 transition-colors" onClick={() => openEdit(budget)}>
+              <Card key={budget.id} variant="raised" interactive onClick={() => openEdit(budget)}>
                 <CardContent className="p-5">
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-3">
-                      <div className={cn('rounded-full p-2.5', catInfo?.bg || 'bg-muted')}>
+                      <div className={cn('rounded-xl p-2.5', catInfo?.bg || 'bg-muted')}>
                         <Icon className={cn('h-4 w-4', catInfo?.color || 'text-muted-foreground')} />
                       </div>
                       <div>

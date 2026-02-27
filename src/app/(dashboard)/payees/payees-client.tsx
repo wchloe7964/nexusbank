@@ -22,6 +22,7 @@ export function PayeesClient({ initialPayees }: PayeesClientProps) {
   const [newPayee, setNewPayee] = useState({ name: '', sortCode: '', accountNumber: '', reference: '' })
   const [payees, setPayees] = useState(initialPayees)
   const [isPending, startTransition] = useTransition()
+  const [addError, setAddError] = useState('')
 
   const filtered = payees.filter((p) =>
     p.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -59,20 +60,25 @@ export function PayeesClient({ initialPayees }: PayeesClientProps) {
 
   function handleAddPayee() {
     if (!newPayee.name || !newPayee.sortCode || !newPayee.accountNumber) return
+    setAddError('')
     startTransition(async () => {
       try {
-        await addPayee({
+        const result = await addPayee({
           name: newPayee.name,
           sortCode: newPayee.sortCode,
           accountNumber: newPayee.accountNumber,
           reference: newPayee.reference || undefined,
         })
+        if (result.blocked) {
+          setAddError(result.blockReason || 'Unable to add this payee. Please check the details and try again.')
+          return
+        }
         setNewPayee({ name: '', sortCode: '', accountNumber: '', reference: '' })
         setShowAdd(false)
-        // Refresh will happen via revalidatePath; for now add optimistically
+        setAddError('')
         window.location.reload()
       } catch {
-        // Handle error silently
+        setAddError('Failed to add payee. Please try again.')
       }
     })
   }
@@ -81,7 +87,7 @@ export function PayeesClient({ initialPayees }: PayeesClientProps) {
     return (
       <div className="flex items-center justify-between px-5 py-4 hover:bg-muted/30 transition-colors">
         <div className="flex items-center gap-3">
-          <div className="rounded-full bg-primary/[0.08] p-2.5">
+          <div className="rounded-xl bg-primary/10 p-2.5">
             <User className="h-4 w-4 text-primary" />
           </div>
           <div>
@@ -164,8 +170,13 @@ export function PayeesClient({ initialPayees }: PayeesClientProps) {
         </Card>
       )}
 
-      <Dialog open={showAdd} onClose={() => setShowAdd(false)} title="Add New Payee">
+      <Dialog open={showAdd} onClose={() => { setShowAdd(false); setAddError('') }} title="Add New Payee">
         <div className="space-y-4">
+          {addError && (
+            <div className="rounded-lg border border-destructive bg-destructive/10 p-3 text-sm text-destructive">
+              {addError}
+            </div>
+          )}
           <div className="space-y-2">
             <label className="text-sm font-medium">Name</label>
             <Input placeholder="Payee name" className="rounded-full" value={newPayee.name} onChange={(e) => setNewPayee({ ...newPayee, name: e.target.value })} />

@@ -127,7 +127,7 @@ export function GoalDetailClient({ goal }: GoalDetailClientProps) {
         <CardContent className="p-6">
           <div className="flex items-start justify-between mb-6">
             <div className="flex items-center gap-4">
-              <div className={cn('rounded-full p-3', colors.bg)}>
+              <div className={cn('rounded-xl p-3', colors.bg)}>
                 <Icon className={cn('h-6 w-6', colors.text)} />
               </div>
               <div>
@@ -193,7 +193,7 @@ export function GoalDetailClient({ goal }: GoalDetailClientProps) {
             <p className="text-sm text-muted-foreground mb-1">Linked Account</p>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="rounded-full bg-primary/[0.08] p-2">
+                <div className="rounded-xl bg-primary/10 p-2">
                   <Wallet className="h-4 w-4 text-primary" />
                 </div>
                 <div>

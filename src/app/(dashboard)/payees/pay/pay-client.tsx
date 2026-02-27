@@ -11,6 +11,8 @@ import { maskAccountNumber } from '@/lib/utils/account-number'
 import { CheckCircle, ArrowRight, User, Send } from 'lucide-react'
 import type { Account, Payee } from '@/lib/types'
 import { executePayeePayment } from './actions'
+import { createScaChallenge } from '@/lib/sca/sca-service'
+import { ScaDialog } from '@/components/shared/sca-dialog'
 import Link from 'next/link'
 
 interface PayClientProps {
@@ -18,7 +20,7 @@ interface PayClientProps {
   accounts: Account[]
 }
 
-type Step = 'form' | 'confirm' | 'success'
+type Step = 'form' | 'confirm' | 'sca' | 'success'
 
 export function PayClient({ payee, accounts }: PayClientProps) {
   const [step, setStep] = useState<Step>('form')
@@ -27,6 +29,10 @@ export function PayClient({ payee, accounts }: PayClientProps) {
   const [reference, setReference] = useState(payee.reference || '')
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState('')
+
+  // SCA state
+  const [scaChallengeId, setScaChallengeId] = useState<string | null>(null)
+  const [scaExpiresAt, setScaExpiresAt] = useState<string | null>(null)
 
   const fromAccount = accounts.find((a) => a.id === fromAccountId)
   const parsedAmount = parseFloat(amount)
@@ -41,15 +47,39 @@ export function PayClient({ payee, accounts }: PayClientProps) {
     setStep('confirm')
   }
 
-  function handleConfirm() {
+  function handleConfirm(challengeId?: string) {
     startTransition(async () => {
       try {
-        await executePayeePayment({
+        const result = await executePayeePayment({
           fromAccountId,
           payeeId: payee.id,
           amount: parsedAmount,
           reference: reference || undefined,
+          scaChallengeId: challengeId || undefined,
         })
+
+        // SCA required — create challenge and show dialog
+        if (result.requiresSca && !challengeId) {
+          try {
+            const challenge = await createScaChallenge('large_payment', {
+              amount: parsedAmount,
+              payee: payee.name,
+            })
+            setScaChallengeId(challenge.challengeId)
+            setScaExpiresAt(challenge.expiresAt)
+            setStep('sca')
+          } catch {
+            setError('Failed to create security challenge. Please try again.')
+            setStep('form')
+          }
+          return
+        }
+
+        if (result.blocked) {
+          setError(result.blockReason || 'Payment was blocked. Please contact support.')
+          setStep('form')
+          return
+        }
         setStep('success')
       } catch (e) {
         setError(e instanceof Error ? e.message : 'Payment failed. Please try again.')
@@ -63,6 +93,46 @@ export function PayClient({ payee, accounts }: PayClientProps) {
     setAmount('')
     setReference(payee.reference || '')
     setError('')
+    setScaChallengeId(null)
+    setScaExpiresAt(null)
+  }
+
+  if (step === 'sca' && scaChallengeId && scaExpiresAt) {
+    return (
+      <>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Confirm Payment</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="rounded-lg bg-muted/50 p-4 space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">To</span>
+                <span className="font-medium">{payee.name}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Amount</span>
+                <span className="font-bold">{formatGBP(parsedAmount)}</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <ScaDialog
+          challengeId={scaChallengeId}
+          expiresAt={scaExpiresAt}
+          onVerified={() => {
+            handleConfirm(scaChallengeId)
+          }}
+          onCancel={() => {
+            setStep('confirm')
+            setScaChallengeId(null)
+            setScaExpiresAt(null)
+          }}
+          title="Verify Payment"
+          description={`Enter the 6-digit code to authorise this ${formatGBP(parsedAmount)} payment to ${payee.name}.`}
+        />
+      </>
+    )
   }
 
   if (step === 'success') {
@@ -120,7 +190,7 @@ export function PayClient({ payee, accounts }: PayClientProps) {
         <CardContent className="space-y-4">
           <div className="rounded-lg bg-muted/50 p-4 space-y-3">
             <div className="flex items-center gap-3 pb-3 border-b border-border">
-              <div className="rounded-full bg-primary/[0.08] p-2.5">
+              <div className="rounded-xl bg-primary/10 p-2.5">
                 <User className="h-4 w-4 text-primary" />
               </div>
               <div>
@@ -155,7 +225,7 @@ export function PayClient({ payee, accounts }: PayClientProps) {
             <Button variant="outline" className="flex-1" onClick={() => setStep('form')}>
               Edit
             </Button>
-            <Button className="flex-1" onClick={handleConfirm} disabled={isPending} loading={isPending}>
+            <Button className="flex-1" onClick={() => handleConfirm()} disabled={isPending} loading={isPending}>
               <Send className="mr-2 h-4 w-4" />
               Send Payment
             </Button>
@@ -173,7 +243,7 @@ export function PayClient({ payee, accounts }: PayClientProps) {
       <CardContent className="space-y-5">
         {/* Payee Info */}
         <div className="flex items-center gap-3 rounded-lg bg-muted/50 p-4">
-          <div className="rounded-full bg-primary/[0.08] p-2.5">
+          <div className="rounded-xl bg-primary/10 p-2.5">
             <User className="h-4 w-4 text-primary" />
           </div>
           <div>

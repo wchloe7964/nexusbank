@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { toPence, fromPence, escapeIlike } from '@/lib/validation'
 import type { Transaction } from '@/lib/types'
 
 interface TransactionFilters {
@@ -32,7 +33,7 @@ export async function getTransactions(filters: TransactionFilters = {}): Promise
   if (accountId) query = query.eq('account_id', accountId)
   if (category) query = query.eq('category', category)
   if (type) query = query.eq('type', type)
-  if (search) query = query.ilike('description', `%${search}%`)
+  if (search) query = query.ilike('description', `%${escapeIlike(search)}%`)
   if (startDate) query = query.gte('transaction_date', startDate)
   if (endDate) query = query.lte('transaction_date', endDate)
 
@@ -94,13 +95,14 @@ export async function getSpendingByCategory(accountId?: string): Promise<{ categ
     return []
   }
 
+  // Use pence arithmetic to avoid floating-point drift
   const grouped: Record<string, number> = {}
   for (const t of data) {
-    grouped[t.category] = (grouped[t.category] || 0) + Number(t.amount)
+    grouped[t.category] = (grouped[t.category] || 0) + toPence(t.amount)
   }
 
   return Object.entries(grouped)
-    .map(([category, total]) => ({ category, total }))
+    .map(([category, totalPence]) => ({ category, total: fromPence(totalPence) }))
     .sort((a, b) => b.total - a.total)
 }
 
@@ -127,7 +129,7 @@ export async function getDailySpending(accountId?: string, days = 30): Promise<{
   const grouped: Record<string, number> = {}
   for (const t of data) {
     const day = t.transaction_date.split('T')[0]
-    grouped[day] = (grouped[day] || 0) + Number(t.amount)
+    grouped[day] = (grouped[day] || 0) + toPence(t.amount)
   }
 
   const result: { date: string; amount: number }[] = []
@@ -135,7 +137,7 @@ export async function getDailySpending(accountId?: string, days = 30): Promise<{
   const today = new Date()
   while (current <= today) {
     const key = current.toISOString().split('T')[0]
-    result.push({ date: key, amount: grouped[key] || 0 })
+    result.push({ date: key, amount: fromPence(grouped[key] || 0) })
     current.setDate(current.getDate() + 1)
   }
 
@@ -167,23 +169,29 @@ export async function getMonthlyComparison(accountId?: string): Promise<{
     return { currentMonth: 0, previousMonth: 0, currentMonthIncome: 0, previousMonthIncome: 0 }
   }
 
-  let currentMonth = 0, previousMonth = 0, currentMonthIncome = 0, previousMonthIncome = 0
+  let currentMonthPence = 0, previousMonthPence = 0
+  let currentMonthIncomePence = 0, previousMonthIncomePence = 0
 
   for (const t of data) {
     const txDate = new Date(t.transaction_date)
     const isCurrentMonth = txDate >= currentMonthStart
-    const amount = Number(t.amount)
+    const amountPence = toPence(t.amount)
 
     if (t.type === 'debit') {
-      if (isCurrentMonth) currentMonth += amount
-      else previousMonth += amount
+      if (isCurrentMonth) currentMonthPence += amountPence
+      else previousMonthPence += amountPence
     } else {
-      if (isCurrentMonth) currentMonthIncome += amount
-      else previousMonthIncome += amount
+      if (isCurrentMonth) currentMonthIncomePence += amountPence
+      else previousMonthIncomePence += amountPence
     }
   }
 
-  return { currentMonth, previousMonth, currentMonthIncome, previousMonthIncome }
+  return {
+    currentMonth: fromPence(currentMonthPence),
+    previousMonth: fromPence(previousMonthPence),
+    currentMonthIncome: fromPence(currentMonthIncomePence),
+    previousMonthIncome: fromPence(previousMonthIncomePence),
+  }
 }
 
 export async function getIncomeVsExpenses(accountId?: string, months = 6): Promise<{
@@ -225,21 +233,26 @@ export async function getIncomeVsExpenses(accountId?: string, months = 6): Promi
     if (!grouped[key]) grouped[key] = { income: 0, expenses: 0 }
 
     if (t.type === 'credit') {
-      grouped[key].income += Number(t.amount)
+      grouped[key].income += toPence(t.amount)
     } else {
-      grouped[key].expenses += Number(t.amount)
+      grouped[key].expenses += toPence(t.amount)
     }
   }
 
   return Object.entries(grouped)
     .sort(([a], [b]) => a.localeCompare(b))
-    .map(([month, vals]) => ({ month, ...vals }))
+    .map(([month, vals]) => ({
+      month,
+      income: fromPence(vals.income),
+      expenses: fromPence(vals.expenses),
+    }))
 }
 
 export async function getMonthlyStatementData(accountId: string, year: number, month: number): Promise<Transaction[]> {
   const supabase = await createClient()
   const startDate = new Date(year, month - 1, 1)
-  const endDate = new Date(year, month, 0, 23, 59, 59)
+  // End of month inclusive — use 23:59:59.999
+  const endDate = new Date(year, month, 0, 23, 59, 59, 999)
 
   const { data, error } = await supabase
     .from('transactions')
@@ -281,15 +294,15 @@ export async function getStatementSummaries(accountId: string, months = 12): Pro
     return []
   }
 
-  const grouped: Record<string, { count: number; totalIn: number; totalOut: number }> = {}
+  const grouped: Record<string, { count: number; totalInPence: number; totalOutPence: number }> = {}
 
   for (const t of data) {
     const d = new Date(t.transaction_date)
     const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
-    if (!grouped[key]) grouped[key] = { count: 0, totalIn: 0, totalOut: 0 }
+    if (!grouped[key]) grouped[key] = { count: 0, totalInPence: 0, totalOutPence: 0 }
     grouped[key].count++
-    if (t.type === 'credit') grouped[key].totalIn += Number(t.amount)
-    else grouped[key].totalOut += Number(t.amount)
+    if (t.type === 'credit') grouped[key].totalInPence += toPence(t.amount)
+    else grouped[key].totalOutPence += toPence(t.amount)
   }
 
   const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
@@ -304,8 +317,8 @@ export async function getStatementSummaries(accountId: string, months = 12): Pro
         year: y,
         monthNum: m,
         transactionCount: vals.count,
-        totalIn: vals.totalIn,
-        totalOut: vals.totalOut,
+        totalIn: fromPence(vals.totalInPence),
+        totalOut: fromPence(vals.totalOutPence),
       }
     })
 }

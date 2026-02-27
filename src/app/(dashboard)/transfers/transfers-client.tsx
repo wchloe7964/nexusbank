@@ -9,12 +9,14 @@ import { formatGBP } from '@/lib/utils/currency'
 import { CheckCircle, ArrowRight } from 'lucide-react'
 import type { Account } from '@/lib/types'
 import { executeTransfer } from './actions'
+import { createScaChallenge } from '@/lib/sca/sca-service'
+import { ScaDialog } from '@/components/shared/sca-dialog'
 
 interface TransfersClientProps {
   accounts: Account[]
 }
 
-type Step = 'form' | 'confirm' | 'success'
+type Step = 'form' | 'confirm' | 'sca' | 'success'
 
 export function TransfersClient({ accounts }: TransfersClientProps) {
   const [step, setStep] = useState<Step>('form')
@@ -24,6 +26,10 @@ export function TransfersClient({ accounts }: TransfersClientProps) {
   const [reference, setReference] = useState('')
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState('')
+
+  // SCA state
+  const [scaChallengeId, setScaChallengeId] = useState<string | null>(null)
+  const [scaExpiresAt, setScaExpiresAt] = useState<string | null>(null)
 
   const fromAccount = accounts.find((a) => a.id === fromAccountId)
   const toAccount = accounts.find((a) => a.id === toAccountId)
@@ -36,15 +42,40 @@ export function TransfersClient({ accounts }: TransfersClientProps) {
     setStep('confirm')
   }
 
-  function handleConfirm() {
+  function handleConfirm(challengeId?: string) {
     startTransition(async () => {
       try {
-        await executeTransfer({
+        const result = await executeTransfer({
           fromAccountId,
           toAccountId,
           amount: parsedAmount,
           reference: reference || undefined,
+          scaChallengeId: challengeId || undefined,
         })
+
+        // SCA required — create challenge and show dialog
+        if (result.requiresSca && !challengeId) {
+          try {
+            const challenge = await createScaChallenge('transfer', {
+              amount: parsedAmount,
+              from: fromAccountId,
+              to: toAccountId,
+            })
+            setScaChallengeId(challenge.challengeId)
+            setScaExpiresAt(challenge.expiresAt)
+            setStep('sca')
+          } catch {
+            setError('Failed to create security challenge. Please try again.')
+            setStep('form')
+          }
+          return
+        }
+
+        if (result.blocked) {
+          setError(result.blockReason || 'This transfer was blocked. Please contact support.')
+          setStep('form')
+          return
+        }
         setStep('success')
       } catch (e) {
         setError(e instanceof Error ? e.message : 'Transfer failed. Please try again.')
@@ -60,6 +91,8 @@ export function TransfersClient({ accounts }: TransfersClientProps) {
     setAmount('')
     setReference('')
     setError('')
+    setScaChallengeId(null)
+    setScaExpiresAt(null)
   }
 
   return (
@@ -83,7 +116,7 @@ export function TransfersClient({ accounts }: TransfersClientProps) {
               </Select>
             </div>
             <div className="flex justify-center">
-              <div className="rounded-full bg-primary/[0.08] p-2">
+              <div className="rounded-xl bg-primary/10 p-2">
                 <ArrowRight className="h-5 w-5 text-primary rotate-90" />
               </div>
             </div>
@@ -160,10 +193,28 @@ export function TransfersClient({ accounts }: TransfersClientProps) {
             </div>
             <div className="flex gap-3">
               <Button variant="outline" className="flex-1" onClick={() => setStep('form')}>Back</Button>
-              <Button className="flex-1" onClick={handleConfirm} loading={isPending}>Confirm Transfer</Button>
+              <Button className="flex-1" onClick={() => handleConfirm()} loading={isPending}>Confirm Transfer</Button>
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {step === 'sca' && scaChallengeId && scaExpiresAt && (
+        <ScaDialog
+          challengeId={scaChallengeId}
+          expiresAt={scaExpiresAt}
+          onVerified={() => {
+            setStep('confirm')
+            handleConfirm(scaChallengeId)
+          }}
+          onCancel={() => {
+            setStep('confirm')
+            setScaChallengeId(null)
+            setScaExpiresAt(null)
+          }}
+          title="Verify Transfer"
+          description="This transfer requires additional verification. Enter the 6-digit code to continue."
+        />
       )}
 
       {step === 'success' && (

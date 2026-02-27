@@ -11,8 +11,8 @@ export function PageHeader({ title, description, action, className }: PageHeader
   return (
     <div className={cn('flex items-start justify-between', className)}>
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
-        {description && <p className="mt-1 text-sm text-muted-foreground">{description}</p>}
+        <h1 className="text-2xl font-bold tracking-tight text-display">{title}</h1>
+        {description && <p className="mt-1.5 text-sm text-muted-foreground leading-relaxed">{description}</p>}
       </div>
       {action && <div className="shrink-0">{action}</div>}
     </div>

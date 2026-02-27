@@ -49,7 +49,7 @@ export function PolicyDetailClient({ policy: initialPolicy }: Props) {
       <Card>
         <CardContent className="p-6">
           <div className="flex items-center gap-4 mb-4">
-            <div className={`rounded-full p-3 ${typeCfg?.bg ?? 'bg-gray-50'}`}>
+            <div className={`rounded-xl p-3 ${typeCfg?.bg ?? 'bg-gray-50'}`}>
               <TypeIcon className={`h-5 w-5 ${typeCfg?.color ?? 'text-gray-500'}`} />
             </div>
             <div>

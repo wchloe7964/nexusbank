@@ -7,11 +7,12 @@ import { formatTransactionDate, formatUKDate } from '@/lib/utils/dates'
 import { formatSortCode } from '@/lib/utils/sort-code'
 import { formatAccountNumber } from '@/lib/utils/account-number'
 import { transactionCategories } from '@/lib/constants/categories'
-import { ArrowLeftRight, ArrowUpRight, ArrowDownLeft, Wallet, Gauge, ChevronRight } from 'lucide-react'
+import { ArrowLeftRight, ArrowUpRight, ArrowDownLeft, Wallet, Gauge, ChevronRight, TrendingUp } from 'lucide-react'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getAccountById } from '@/lib/queries/accounts'
 import { getRecentTransactions } from '@/lib/queries/transactions'
+import { getAccruedInterest } from '@/lib/finance/interest-engine'
 import { AccountPreferencesDialog } from './account-preferences-dialog'
 
 const typeLabels: Record<string, string> = {
@@ -35,9 +36,10 @@ export default async function AccountDetailPage({
 }) {
   const { accountId } = await params
 
-  const [account, recentTransactions] = await Promise.all([
+  const [account, recentTransactions, interestSummary] = await Promise.all([
     getAccountById(accountId),
     getRecentTransactions(accountId, 10),
+    getAccruedInterest(accountId, 30).catch(() => null),
   ])
 
   if (!account) {
@@ -125,11 +127,11 @@ export default async function AccountDetailPage({
       {/* Overdraft Manager Link */}
       {account.overdraft_limit > 0 && (
         <Link href="/accounts/overdraft" className="block">
-          <Card className="hover:border-primary/50 transition-colors">
+          <Card variant="raised" interactive>
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="rounded-full bg-amber-500/10 p-2.5">
+                  <div className="rounded-xl bg-amber-500/10 p-2.5">
                     <Gauge className="h-4 w-4 text-amber-500" />
                   </div>
                   <div>
@@ -144,6 +146,45 @@ export default async function AccountDetailPage({
             </CardContent>
           </Card>
         </Link>
+      )}
+
+      {/* Interest Summary — for savings/ISA accounts with earned interest */}
+      {interestSummary && interestSummary.currentRate > 0 && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center gap-2">
+              <TrendingUp className="h-4 w-4 text-emerald-500" />
+              <CardTitle className="text-base tracking-tight">Interest Earned</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <dl className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
+              <div>
+                <dt className="text-muted-foreground">Current Rate</dt>
+                <dd className="text-lg font-bold text-emerald-500 tabular-nums">
+                  {(interestSummary.currentRate * 100).toFixed(2)}% <span className="text-xs font-normal text-muted-foreground">AER</span>
+                </dd>
+              </div>
+              <div>
+                <dt className="text-muted-foreground">Accrued (30 days)</dt>
+                <dd className="text-lg font-bold tabular-nums">{formatGBP(interestSummary.totalAccrued)}</dd>
+              </div>
+              <div>
+                <dt className="text-muted-foreground">Paid</dt>
+                <dd className="text-lg font-bold text-emerald-500 tabular-nums">{formatGBP(interestSummary.totalPaid)}</dd>
+              </div>
+              <div>
+                <dt className="text-muted-foreground">Pending</dt>
+                <dd className="text-lg font-bold tabular-nums">{formatGBP(interestSummary.pendingAmount)}</dd>
+              </div>
+            </dl>
+            {interestSummary.dayCount > 0 && (
+              <p className="mt-3 text-xs text-muted-foreground">
+                Interest calculated daily on your closing balance over {interestSummary.dayCount} day{interestSummary.dayCount !== 1 ? 's' : ''}. Paid monthly.
+              </p>
+            )}
+          </CardContent>
+        </Card>
       )}
 
       {/* Transactions */}
@@ -175,7 +216,7 @@ export default async function AccountDetailPage({
                   return (
                     <div key={tx.id} className="flex items-center justify-between px-5 py-4 hover:bg-muted/30 transition-colors">
                       <div className="flex items-center gap-3">
-                        <div className={`rounded-full p-2.5 ${cat?.bg || 'bg-muted'}`}>
+                        <div className={`rounded-xl p-2.5 ${cat?.bg || 'bg-muted'}`}>
                           {Icon && <Icon className={`h-4 w-4 ${cat?.color || 'text-muted-foreground'}`} />}
                         </div>
                         <div>

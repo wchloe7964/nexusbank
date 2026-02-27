@@ -2,6 +2,9 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { requireAuth, validateAmount, verifyAccountOwnership, verifyPayeeOwnership } from '@/lib/validation'
+
+const VALID_FREQUENCIES = ['weekly', 'fortnightly', 'monthly', 'quarterly', 'annually']
 
 export async function createStandingOrder(data: {
   fromAccountId: string
@@ -12,16 +15,25 @@ export async function createStandingOrder(data: {
   nextPaymentDate: string
 }) {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Not authenticated')
+  const userId = await requireAuth(supabase)
+
+  validateAmount(data.amount, 'Standing order amount')
+
+  if (!VALID_FREQUENCIES.includes(data.frequency)) {
+    throw new Error('Invalid payment frequency')
+  }
+
+  // Verify account and payee belong to user
+  await verifyAccountOwnership(supabase, data.fromAccountId, userId)
+  await verifyPayeeOwnership(supabase, data.payeeId, userId)
 
   const { error } = await supabase.from('scheduled_payments').insert({
-    user_id: user.id,
+    user_id: userId,
     from_account_id: data.fromAccountId,
     payee_id: data.payeeId,
     payment_type: 'standing_order',
     amount: data.amount,
-    reference: data.reference || null,
+    reference: data.reference?.trim() || null,
     description: null,
     frequency: data.frequency,
     next_payment_date: data.nextPaymentDate,
@@ -44,8 +56,13 @@ export async function updateStandingOrder(
   },
 ) {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Not authenticated')
+  const userId = await requireAuth(supabase)
+
+  validateAmount(data.amount, 'Standing order amount')
+
+  if (!VALID_FREQUENCIES.includes(data.frequency)) {
+    throw new Error('Invalid payment frequency')
+  }
 
   const { error } = await supabase
     .from('scheduled_payments')
@@ -53,9 +70,10 @@ export async function updateStandingOrder(
       amount: data.amount,
       frequency: data.frequency,
       next_payment_date: data.nextPaymentDate,
-      reference: data.reference || null,
+      reference: data.reference?.trim() || null,
     })
     .eq('id', paymentId)
+    .eq('user_id', userId)
 
   if (error) throw new Error(error.message)
 

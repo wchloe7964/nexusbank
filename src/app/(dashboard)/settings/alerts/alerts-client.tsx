@@ -213,7 +213,7 @@ export function AlertsClient({ alerts: initialAlerts, accounts, triggeredAlertId
                     className="flex items-center justify-between w-full p-3 rounded-lg border hover:border-primary/50 hover:bg-muted/30 transition-colors text-left"
                   >
                     <div className="flex items-center gap-3">
-                      <div className={`rounded-full p-2 ${config.bg}`}>
+                      <div className={`rounded-xl p-2 ${config.bg}`}>
                         <SugIcon className={`h-3.5 w-3.5 ${config.color}`} />
                       </div>
                       <div>
@@ -262,7 +262,7 @@ export function AlertsClient({ alerts: initialAlerts, accounts, triggeredAlertId
                     } ${!alert.is_active ? 'opacity-60' : ''}`}
                   >
                     <div className="flex items-center gap-3">
-                      <div className={`rounded-full p-2.5 ${config.bg}`}>
+                      <div className={`rounded-xl p-2.5 ${config.bg}`}>
                         <AlertIcon className={`h-4 w-4 ${config.color}`} />
                       </div>
                       <div>
@@ -324,7 +324,7 @@ export function AlertsClient({ alerts: initialAlerts, accounts, triggeredAlertId
                   onClick={() => selectType(type)}
                   className="flex items-center gap-3 w-full p-3 rounded-lg border hover:border-primary/50 hover:bg-muted/30 transition-colors text-left"
                 >
-                  <div className={`rounded-full p-2.5 ${config.bg}`}>
+                  <div className={`rounded-xl p-2.5 ${config.bg}`}>
                     <TypeIcon className={`h-4 w-4 ${config.color}`} />
                   </div>
                   <div>

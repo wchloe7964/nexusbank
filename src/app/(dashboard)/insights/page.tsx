@@ -48,11 +48,11 @@ export default async function InsightsPage() {
 
       {/* Analytics Deep-Dive Link */}
       <Link href="/insights/analytics" className="block">
-        <Card className="hover:border-primary/50 transition-colors">
+        <Card variant="raised" interactive>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="rounded-full bg-purple-500/10 p-2.5">
+                <div className="rounded-xl bg-purple-500/10 p-2.5">
                   <BarChart3 className="h-4 w-4 text-purple-500" />
                 </div>
                 <div>

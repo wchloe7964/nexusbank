@@ -121,7 +121,7 @@ export function SODetailClient({ standingOrder, history }: SODetailClientProps) 
         <CardContent className="p-6">
           <div className="flex items-start justify-between mb-6">
             <div className="flex items-center gap-4">
-              <div className="rounded-full bg-purple-500/10 p-3">
+              <div className="rounded-xl bg-purple-500/10 p-3">
                 <CalendarClock className="h-6 w-6 text-purple-500" />
               </div>
               <div>
@@ -185,7 +185,7 @@ export function SODetailClient({ standingOrder, history }: SODetailClientProps) 
           <CardContent className="p-5">
             <p className="text-sm text-muted-foreground mb-1">Paying From</p>
             <div className="flex items-center gap-3">
-              <div className="rounded-full bg-primary/[0.08] p-2">
+              <div className="rounded-xl bg-primary/10 p-2">
                 <Wallet className="h-4 w-4 text-primary" />
               </div>
               <div>
@@ -321,7 +321,7 @@ export function SODetailClient({ standingOrder, history }: SODetailClientProps) 
       <Card className="border-blue-500/20 bg-blue-500/[0.03]">
         <CardContent className="p-4">
           <div className="flex items-start gap-3">
-            <div className="rounded-full bg-blue-500/10 p-2 shrink-0">
+            <div className="rounded-xl bg-blue-500/10 p-2 shrink-0">
               <Shield className="h-4 w-4 text-blue-500" />
             </div>
             <div>

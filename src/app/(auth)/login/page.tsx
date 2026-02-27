@@ -19,7 +19,7 @@ type LoginMethod = 'membership' | 'card' | 'account'
 
 const LOGIN_METHODS: { id: LoginMethod; label: string }[] = [
   { id: 'membership', label: 'Membership number' },
-  { id: 'card', label: 'Card number' },
+  { id: 'card', label: 'Card (last 4 digits)' },
   { id: 'account', label: 'Sort code and account number' },
 ]
 
@@ -35,7 +35,7 @@ export default function LoginPage() {
   const [loginMethod, setLoginMethod] = useState<LoginMethod>('membership')
   const [lastName, setLastName] = useState('')
   const [membershipNumber, setMembershipNumber] = useState('')
-  const [cardNumber, setCardNumber] = useState('')
+  const [cardLast4, setCardLast4] = useState('')
   const [sortCode1, setSortCode1] = useState('')
   const [sortCode2, setSortCode2] = useState('')
   const [sortCode3, setSortCode3] = useState('')
@@ -69,8 +69,8 @@ export default function LoginPage() {
           return
         }
       } else if (loginMethod === 'card') {
-        if (!cardNumber || cardNumber.length < 16) {
-          setError('Please enter your 16-digit card number')
+        if (!cardLast4 || cardLast4.length < 4) {
+          setError('Please enter the last 4 digits of your card')
           return
         }
       } else if (loginMethod === 'account') {
@@ -90,7 +90,7 @@ export default function LoginPage() {
         method: loginMethod,
         lastName,
         membershipNumber: loginMethod === 'membership' ? membershipNumber : undefined,
-        cardNumber: loginMethod === 'card' ? cardNumber : undefined,
+        cardLast4: loginMethod === 'card' ? cardLast4 : undefined,
         sortCode: loginMethod === 'account' ? `${sortCode1}-${sortCode2}-${sortCode3}` : undefined,
         accountNumber: loginMethod === 'account' ? accountNumber : undefined,
       })
@@ -100,7 +100,7 @@ export default function LoginPage() {
         setLoading(false)
       }
     },
-    [lastName, loginMethod, membershipNumber, cardNumber, sortCode1, sortCode2, sortCode3, accountNumber]
+    [lastName, loginMethod, membershipNumber, cardLast4, sortCode1, sortCode2, sortCode3, accountNumber]
   )
 
   return (
@@ -235,24 +235,25 @@ export default function LoginPage() {
               </div>
             )}
 
-            {/* ── Card number method ── */}
+            {/* ── Card last 4 digits method ── */}
             {loginMethod === 'card' && (
               <div className="space-y-1.5">
-                <label htmlFor="cardNumber" className="text-sm font-medium text-foreground">
-                  Card number (16 digits)
+                <label htmlFor="cardLast4" className="text-sm font-medium text-foreground">
+                  Last 4 digits of your card
                 </label>
                 <Input
-                  id="cardNumber"
-                  name="cardNumber"
+                  id="cardLast4"
+                  name="cardLast4"
                   type="text"
                   inputMode="numeric"
-                  maxLength={19}
-                  value={cardNumber.replace(/(.{4})/g, '$1 ').trim()}
+                  maxLength={4}
+                  value={cardLast4}
                   onChange={(e) => {
-                    const raw = e.target.value.replace(/\D/g, '').slice(0, 16)
-                    setCardNumber(raw)
+                    const raw = e.target.value.replace(/\D/g, '').slice(0, 4)
+                    setCardLast4(raw)
                   }}
-                  placeholder="0000 0000 0000 0000"
+                  placeholder="0000"
+                  className="max-w-[120px]"
                 />
               </div>
             )}

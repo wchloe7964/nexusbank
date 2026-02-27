@@ -74,7 +74,7 @@ export function DisputesClient({ disputes }: DisputesClientProps) {
                     className="flex items-center justify-between px-5 py-4 hover:bg-muted/30 transition-colors"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="rounded-full bg-red-500/10 p-2.5">
+                      <div className="rounded-xl bg-red-500/10 p-2.5">
                         <ReasonIcon className="h-4 w-4 text-red-500" />
                       </div>
                       <div>

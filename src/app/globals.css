@@ -26,6 +26,11 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
   --font-sans: var(--font-inter);
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06), 0 2px 4px rgba(0, 0, 0, 0.03);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.08), 0 4px 8px rgba(0, 0, 0, 0.04);
+  --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.1), 0 8px 16px rgba(0, 0, 0, 0.05);
 }
 
 :root {
@@ -33,16 +38,16 @@
   --primary-foreground: #ffffff;
   --secondary: #1e293b;
   --secondary-foreground: #ffffff;
-  --background: #f2f2f2;
-  --foreground: #474747;
+  --background: #f8f9fb;
+  --foreground: #1a1a2e;
   --card: #ffffff;
-  --card-foreground: #474747;
-  --muted: #f2f2f2;
-  --muted-foreground: #6b7280;
-  --accent: #eef4ff;
+  --card-foreground: #1a1a2e;
+  --muted: #f1f3f8;
+  --muted-foreground: #64748b;
+  --accent: #eef2ff;
   --accent-foreground: #1e293b;
   --destructive: #c90212;
-  --border: #e0e0e0;
+  --border: #e8ecf1;
   --input: #474747;
   --ring: #0066ff;
   --success: #10b981;
@@ -57,22 +62,27 @@
   --primary-foreground: #ffffff;
   --secondary: #c7d2fe;
   --secondary-foreground: #0a0e1a;
-  --background: #0f172a;
+  --background: #0c1222;
   --foreground: #e2e8f0;
-  --card: #1e293b;
+  --card: #162032;
   --card-foreground: #e2e8f0;
   --muted: #1e293b;
   --muted-foreground: #94a3b8;
   --accent: #1e293b;
   --accent-foreground: #c7d2fe;
   --destructive: #f87171;
-  --border: #334155;
+  --border: #2a3a52;
   --input: #334155;
   --ring: #3b8bff;
   --success: #34d399;
   --warning: #fbbf24;
   --sidebar: #0f172a;
   --sidebar-foreground: #94a3b8;
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.2), 0 1px 2px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.15);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.35), 0 4px 8px rgba(0, 0, 0, 0.2);
+  --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.4), 0 8px 16px rgba(0, 0, 0, 0.25);
 }
 
 /* === Base === */
@@ -87,6 +97,7 @@ body {
   color: var(--foreground);
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   line-height: 1.6;
+  letter-spacing: -0.011em;
 }
 
 *:focus-visible {
@@ -147,6 +158,16 @@ body {
   100% { background-position: 200% 0; }
 }
 
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+@keyframes glow {
+  0%, 100% { box-shadow: 0 0 8px rgba(0, 102, 255, 0.15); }
+  50% { box-shadow: 0 0 20px rgba(0, 102, 255, 0.3); }
+}
+
 /* === Animation Utilities === */
 .animate-in { animation: fade-in 0.25s ease-out; }
 .animate-fade-in-up { animation: fade-in-up 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
@@ -155,6 +176,8 @@ body {
 .slide-in-from-left { animation: slide-in-left 0.3s cubic-bezier(0.32, 0.72, 0, 1); }
 .animate-slide-up { animation: slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
 .animate-pulse-gentle { animation: pulse-gentle 2s ease-in-out infinite; }
+.animate-float { animation: float 3s ease-in-out infinite; }
+.animate-glow { animation: glow 2s ease-in-out infinite; }
 
 .animate-shimmer {
   background: linear-gradient(90deg, var(--muted) 25%, var(--accent) 50%, var(--muted) 75%);
@@ -167,20 +190,77 @@ body {
 .gradient-dark { background: linear-gradient(135deg, #1e293b 0%, #334155 50%, #1e293b 100%); }
 .gradient-accent { background: linear-gradient(135deg, #0066ff 0%, #6366f1 100%); }
 
-/* === Santander-inspired: card hover → brand-color border === */
-.hover-lift {
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+.gradient-hero {
+  background: linear-gradient(135deg, #0066ff 0%, #4f46e5 50%, #7c3aed 100%);
+}
+.dark .gradient-hero {
+  background: linear-gradient(135deg, #1e40af 0%, #4338ca 50%, #6d28d9 100%);
+}
+.gradient-success {
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+}
+.gradient-savings {
+  background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+}
+.gradient-isa {
+  background: linear-gradient(135deg, #d97706 0%, #f59e0b 100%);
 }
 
+/* === Glass Morphism === */
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+}
+.dark .glass {
+  background: rgba(22, 32, 50, 0.7);
+}
+.glass-strong {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px) saturate(200%);
+  -webkit-backdrop-filter: blur(20px) saturate(200%);
+}
+.dark .glass-strong {
+  background: rgba(22, 32, 50, 0.85);
+}
+.glass-sidebar {
+  background: rgba(15, 23, 42, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+/* === Hover & Interaction Effects === */
+.hover-lift {
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
 .hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
   border-color: var(--primary);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.hover-glow {
+  transition: box-shadow 0.2s ease;
+}
+.hover-glow:hover {
+  box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.08), var(--shadow-md);
+}
+
+.transition-base {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* === Typography === */
+.text-display {
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.1;
 }
 
 /* === Safe Area === */
 .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
 
-/* === Accent bar (red/brand stripe used in Santander sections) === */
+/* === Accent bar === */
 .accent-bar {
   width: 3.5rem;
   height: 3px;
@@ -188,7 +268,7 @@ body {
   border-radius: 2px;
 }
 
-/* === Dark footer (Santander #6f7779 → our sidebar slate) === */
+/* === Dark footer === */
 .footer-dark {
   background: var(--sidebar);
   color: #e2e8f0;
@@ -197,3 +277,95 @@ body {
 .dark .footer-dark {
   background: #0f172a;
 }
+
+/* ============================================================
+   ADMIN PANEL — Barclays-Inspired Theme Override
+   Scoped to .barclays-admin so it doesn't affect customer UI
+   ============================================================ */
+.barclays-admin {
+  --primary: #00AEEF;
+  --primary-foreground: #ffffff;
+  --secondary: #00395D;
+  --secondary-foreground: #ffffff;
+  --background: #F4F6F9;
+  --foreground: #1A2233;
+  --card: #ffffff;
+  --card-foreground: #1A2233;
+  --muted: #EBF0F5;
+  --muted-foreground: #5A6E82;
+  --accent: #E0F3FE;
+  --accent-foreground: #00395D;
+  --destructive: #D4351C;
+  --border: #D8DEE6;
+  --input: #3B4D61;
+  --ring: #00AEEF;
+  --success: #00703C;
+  --warning: #F47738;
+  --sidebar: #001A33;
+  --sidebar-foreground: #8FA4B8;
+}
+
+.dark .barclays-admin {
+  --primary: #29B6F6;
+  --primary-foreground: #ffffff;
+  --secondary: #90CAF9;
+  --secondary-foreground: #0A1929;
+  --background: #001A33;
+  --foreground: #E1E8EF;
+  --card: #002644;
+  --card-foreground: #E1E8EF;
+  --muted: #00395D;
+  --muted-foreground: #8FA4B8;
+  --accent: #003A5C;
+  --accent-foreground: #90CAF9;
+  --destructive: #EF5350;
+  --border: #1A4060;
+  --input: #1A4060;
+  --ring: #29B6F6;
+  --success: #4CAF50;
+  --warning: #FFA726;
+  --sidebar: #000D1A;
+  --sidebar-foreground: #8FA4B8;
+}
+
+/* Admin sidebar with deep Barclays navy */
+.barclays-admin .glass-sidebar {
+  background: var(--sidebar);
+  backdrop-filter: none;
+}
+
+/* Admin glass-strong topbar */
+.barclays-admin .glass-strong {
+  background: var(--card);
+  backdrop-filter: none;
+}
+
+.dark .barclays-admin .glass-strong {
+  background: var(--card);
+}
+
+/* Admin data tables - zebra striping */
+.barclays-admin table tbody tr:nth-child(even) {
+  background-color: rgba(244, 246, 249, 0.5);
+}
+.dark .barclays-admin table tbody tr:nth-child(even) {
+  background-color: rgba(0, 57, 93, 0.15);
+}
+
+/* Admin data table row hover */
+.barclays-admin table tbody tr:hover {
+  background-color: #E0F3FE !important;
+}
+.dark .barclays-admin table tbody tr:hover {
+  background-color: rgba(0, 174, 239, 0.08) !important;
+}
+
+/* Admin selection color */
+.barclays-admin ::selection {
+  background-color: rgba(0, 174, 239, 0.15);
+}
+
+/* Admin gradient overrides */
+.barclays-admin .gradient-primary { background: linear-gradient(135deg, #00AEEF 0%, #0077B6 100%); }
+.barclays-admin .gradient-dark { background: linear-gradient(135deg, #001A33 0%, #00395D 50%, #001A33 100%); }
+.barclays-admin .gradient-hero { background: linear-gradient(135deg, #00395D 0%, #0077B6 50%, #00AEEF 100%); }

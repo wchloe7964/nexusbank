@@ -57,7 +57,7 @@ export function DirectDebitsClient({ directDebits }: DirectDebitsClientProps) {
       <Card className="border-blue-500/20 bg-blue-500/[0.03]">
         <CardContent className="p-4">
           <div className="flex items-start gap-3">
-            <div className="rounded-full bg-blue-500/10 p-2 shrink-0">
+            <div className="rounded-xl bg-blue-500/10 p-2 shrink-0">
               <Shield className="h-4 w-4 text-blue-500" />
             </div>
             <div>
@@ -151,7 +151,7 @@ function DDRow({
       className="flex items-center justify-between px-5 py-4 hover:bg-muted/30 transition-colors"
     >
       <div className="flex items-center gap-3">
-        <div className="rounded-full bg-orange-500/10 p-2.5">
+        <div className="rounded-xl bg-orange-500/10 p-2.5">
           <Building2 className="h-4 w-4 text-orange-500" />
         </div>
         <div>

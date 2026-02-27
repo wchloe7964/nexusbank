@@ -257,7 +257,7 @@ export function CalendarClient({ payments }: CalendarClientProps) {
                     <div key={payment.id} className="flex items-center justify-between py-3">
                       <div className="flex items-center gap-3">
                         <div className={cn(
-                          'rounded-full p-2',
+                          'rounded-xl p-2',
                           payment.payment_type === 'standing_order' ? 'bg-blue-500/10' :
                           payment.payment_type === 'direct_debit' ? 'bg-orange-500/10' :
                           payment.payment_type === 'scheduled_transfer' ? 'bg-emerald-500/10' :

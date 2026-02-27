@@ -29,11 +29,11 @@ export default async function PaymentsPage() {
       {/* Quick Links */}
       <div className="space-y-3">
         <Link href="/payments/direct-debits" className="block">
-          <Card className="hover:border-primary/50 transition-colors">
+          <Card variant="raised" interactive>
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="rounded-full bg-orange-500/10 p-2.5">
+                  <div className="rounded-xl bg-orange-500/10 p-2.5">
                     <Building2 className="h-4 w-4 text-orange-500" />
                   </div>
                   <div>
@@ -50,11 +50,11 @@ export default async function PaymentsPage() {
         </Link>
 
         <Link href="/payments/standing-orders" className="block">
-          <Card className="hover:border-primary/50 transition-colors">
+          <Card variant="raised" interactive>
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="rounded-full bg-purple-500/10 p-2.5">
+                  <div className="rounded-xl bg-purple-500/10 p-2.5">
                     <CalendarClock className="h-4 w-4 text-purple-500" />
                   </div>
                   <div>
@@ -71,11 +71,11 @@ export default async function PaymentsPage() {
         </Link>
 
         <Link href="/payments/calendar" className="block">
-          <Card className="hover:border-primary/50 transition-colors">
+          <Card variant="raised" interactive>
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="rounded-full bg-teal-500/10 p-2.5">
+                  <div className="rounded-xl bg-teal-500/10 p-2.5">
                     <CalendarDays className="h-4 w-4 text-teal-500" />
                   </div>
                   <div>

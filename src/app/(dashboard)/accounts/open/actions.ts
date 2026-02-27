@@ -2,17 +2,21 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { randomInt } from 'crypto'
 import type { AccountType } from '@/lib/types'
+import { requireAuth } from '@/lib/validation'
 
 function generateSortCode(): string {
-  const p2 = String(Math.floor(Math.random() * 100)).padStart(2, '0')
-  const p3 = String(Math.floor(Math.random() * 100)).padStart(2, '0')
+  const p2 = String(randomInt(0, 100)).padStart(2, '0')
+  const p3 = String(randomInt(0, 100)).padStart(2, '0')
   return `20-${p2}-${p3}`
 }
 
 function generateAccountNumber(): string {
-  return String(Math.floor(10000000 + Math.random() * 90000000))
+  return String(randomInt(10000000, 100000000))
 }
+
+const VALID_ACCOUNT_TYPES: AccountType[] = ['current', 'savings', 'isa', 'business']
 
 const ACCOUNT_DEFAULTS: Record<AccountType, {
   interestRate: number
@@ -38,25 +42,35 @@ export async function openNewAccount(input: OpenAccountInput): Promise<{
   cardLast4?: string
 }> {
   const supabase = await createClient()
+  const userId = await requireAuth(supabase)
 
-  const { data: { user }, error: authError } = await supabase.auth.getUser()
-  if (authError || !user) throw new Error('Not authenticated')
+  // Validate account type
+  if (!VALID_ACCOUNT_TYPES.includes(input.accountType)) {
+    throw new Error('Invalid account type')
+  }
+
+  // Validate account name
+  const trimmedName = input.accountName.trim()
+  if (!trimmedName || trimmedName.length > 100) {
+    throw new Error('Account name must be between 1 and 100 characters')
+  }
 
   const defaults = ACCOUNT_DEFAULTS[input.accountType]
   const sortCode = generateSortCode()
   const accountNumber = generateAccountNumber()
 
-  // Determine overdraft: only for current/business
-  const overdraftLimit = (input.accountType === 'current' || input.accountType === 'business')
-    ? Math.min(input.overdraftLimit, 25000)
-    : 0
+  // Determine overdraft: only for current/business, with bounds
+  let overdraftLimit = 0
+  if (input.accountType === 'current' || input.accountType === 'business') {
+    overdraftLimit = Math.max(0, Math.min(Math.round(input.overdraftLimit), 25000))
+  }
 
   // Insert account
   const { data: account, error: accountError } = await supabase
     .from('accounts')
     .insert({
-      user_id: user.id,
-      account_name: input.accountName,
+      user_id: userId,
+      account_name: trimmedName,
       account_type: input.accountType,
       sort_code: sortCode,
       account_number: accountNumber,
@@ -81,8 +95,8 @@ export async function openNewAccount(input: OpenAccountInput): Promise<{
       const { data: retryAccount, error: retryError } = await supabase
         .from('accounts')
         .insert({
-          user_id: user.id,
-          account_name: input.accountName,
+          user_id: userId,
+          account_name: trimmedName,
           account_type: input.accountType,
           sort_code: retrySortCode,
           account_number: retryAccountNumber,
@@ -101,7 +115,7 @@ export async function openNewAccount(input: OpenAccountInput): Promise<{
 
       let cardLast4: string | undefined
       if (defaults.cardRequired && retryAccount) {
-        cardLast4 = await createCard(supabase, retryAccount.id, user.id, input.accountName)
+        cardLast4 = await createCard(supabase, retryAccount.id, userId, trimmedName)
       }
 
       revalidatePath('/accounts')
@@ -120,7 +134,7 @@ export async function openNewAccount(input: OpenAccountInput): Promise<{
 
   let cardLast4: string | undefined
   if (defaults.cardRequired && account) {
-    cardLast4 = await createCard(supabase, account.id, user.id, input.accountName)
+    cardLast4 = await createCard(supabase, account.id, userId, trimmedName)
   }
 
   revalidatePath('/accounts')
@@ -140,7 +154,7 @@ async function createCard(
   userId: string,
   accountName: string,
 ): Promise<string | undefined> {
-  const last4 = String(Math.floor(1000 + Math.random() * 9000))
+  const last4 = String(randomInt(1000, 10000))
   const expiryDate = new Date()
   expiryDate.setFullYear(expiryDate.getFullYear() + 5)
   const expiryStr = `${String(expiryDate.getMonth() + 1).padStart(2, '0')}/${String(expiryDate.getFullYear()).slice(-2)}`

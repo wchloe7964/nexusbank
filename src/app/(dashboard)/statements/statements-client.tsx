@@ -198,7 +198,7 @@ export function StatementsClient({ accounts }: StatementsClientProps) {
                             <td className="px-4 py-3">
                               <div className="flex items-center gap-2">
                                 {Icon && (
-                                  <div className={`rounded-full p-1 ${catInfo.bg}`}>
+                                  <div className={`rounded-xl p-1 ${catInfo.bg}`}>
                                     <Icon className={`h-3 w-3 ${catInfo.color}`} />
                                   </div>
                                 )}
@@ -259,7 +259,7 @@ export function StatementsClient({ accounts }: StatementsClientProps) {
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5">
-                      <div className="rounded-full bg-primary/[0.08] p-2">
+                      <div className="rounded-xl bg-primary/10 p-2">
                         <Calendar className="h-4 w-4 text-primary" />
                       </div>
                       <div>

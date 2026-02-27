@@ -9,6 +9,7 @@ import { Switch } from '@/components/ui/switch'
 import { formatGBP } from '@/lib/utils/currency'
 import { cardNetworkConfigs, cardStatusConfigs } from '@/lib/constants/credit-cards'
 import { ArrowLeft, Wallet, Snowflake, Calendar, Percent, Gift, CreditCard } from 'lucide-react'
+import { BankCard } from '@/components/shared/bank-card'
 import Link from 'next/link'
 import type { CreditCard as CreditCardType, Account } from '@/lib/types'
 import { makeCreditCardPayment, toggleCreditCardFreeze } from '../actions'
@@ -86,24 +87,7 @@ export function CreditCardDetailClient({ card: initialCard, accounts }: Props) {
       </Link>
 
       {/* Visual Card */}
-      <div className={`${network.bg} rounded-2xl p-8 text-white max-w-md`}>
-        <div className="flex items-center justify-between mb-10">
-          <span className="text-base font-medium opacity-90">{card.card_name}</span>
-          <span className="text-xl font-bold tracking-wider">{network.logo}</span>
-        </div>
-        <p className="text-xs opacity-70 mb-1">Card Number</p>
-        <p className="text-xl font-mono tracking-[0.25em] mb-8">•••• •••• •••• {card.card_number_last_four}</p>
-        <div className="flex items-end justify-between">
-          <div>
-            <p className="text-xs opacity-70">Current Balance</p>
-            <p className="text-2xl font-bold">{formatGBP(Number(card.current_balance))}</p>
-          </div>
-          <Badge variant="outline" className="bg-white/10 border-white/20 text-white">
-            <StatusIcon className="mr-1 h-3 w-3" />
-            {statusCfg.label}
-          </Badge>
-        </div>
-      </div>
+      <BankCard variant="credit" card={card} size="full" />
 
       {/* Actions */}
       <div className="flex items-center gap-3">

@@ -6,12 +6,16 @@ export const cardNetworkConfigs = {
     color: 'text-blue-600',
     bg: 'bg-gradient-to-br from-blue-600 to-blue-800',
     logo: '𝗩𝗜𝗦𝗔',
+    metalBase: '#1a3a6b',
+    metalHighlight: '#2d5aa0',
   },
   mastercard: {
     label: 'Mastercard',
     color: 'text-orange-600',
     bg: 'bg-gradient-to-br from-gray-800 to-gray-950',
     logo: '●●',
+    metalBase: '#2a2a2f',
+    metalHighlight: '#4a4a52',
   },
 } as const
 

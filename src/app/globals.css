@@ -379,3 +379,184 @@ body {
   .print\:border-none { border: none !important; }
   .print\:rounded-none { border-radius: 0 !important; }
 }
+
+/* === Premium Bank Card === */
+
+/* ── Outermost wrapper ── */
+.bank-card {
+  font-family: "Trebuchet MS", sans-serif;
+  position: relative;
+  aspect-ratio: 1.586;
+  border-radius: 1em;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Gradient border layer ── */
+.bank-card-border {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 1em;
+  background: linear-gradient(
+    115deg,
+    rgba(0,0,0,0.33) 12%,
+    rgba(255,255,255,0.33) 27%,
+    rgba(255,255,255,0.33) 31%,
+    rgba(0,0,0,0.33) 52%
+  );
+}
+
+/* ── Silver brushed-metal base ── */
+.bank-card-metal {
+  height: calc(100% - 6px);
+  width: calc(100% - 6px);
+  border-radius: 0.9em;
+  opacity: 0.85;
+  background-color: #999;
+  background-image: linear-gradient(to right, #777, #777 2px, #999 2px, #999);
+  background-size: 4px 100%;
+}
+
+/* ── Shadow / inner frame with corner rounding ── */
+.bank-card-shadow {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 0.85em;
+  border: 1px solid #bbb;
+  background:
+    radial-gradient(circle at 100% 100%, #fff 0, #fff 8px, transparent 8px) 0% 0%/13px 13px no-repeat,
+    radial-gradient(circle at 0 100%, #fff 0, #fff 8px, transparent 8px) 100% 0%/13px 13px no-repeat,
+    radial-gradient(circle at 100% 0, #fff 0, #fff 8px, transparent 8px) 0% 100%/13px 13px no-repeat,
+    radial-gradient(circle at 0 0, #fff 0, #fff 8px, transparent 8px) 100% 100%/13px 13px no-repeat,
+    linear-gradient(#fff, #fff) 50% 50% / calc(100% - 10px) calc(100% - 26px) no-repeat,
+    linear-gradient(#fff, #fff) 50% 50% / calc(100% - 26px) calc(100% - 10px) no-repeat,
+    linear-gradient(135deg, rgba(3,3,3,0.5) 0%, transparent 22%, transparent 47%, transparent 73%, rgba(0,0,0,0.5) 100%);
+  box-sizing: border-box;
+}
+
+/* ── Content area — the inner face of the card ── */
+.bank-card-content {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  border-radius: 0.6em;
+  border: 1px solid #aaa;
+  box-shadow: -1px -1px 0 #ddd;
+  transform: translate(-50%, -50%);
+  height: calc(100% - 12px);
+  width: calc(100% - 12px);
+  background-image: linear-gradient(to right, #777, #555 2px, #aaa 2px, #aaa);
+  background-size: 4px 100%;
+  overflow: hidden;
+}
+
+/* ── Text styles ── */
+.bank-card-text {
+  position: absolute;
+  text-shadow: -1px -1px #333;
+  color: #fff;
+  opacity: 0.75;
+}
+.bank-card-brand {
+  top: 0.5em;
+  left: 0.75em;
+  font-size: 1em;
+  letter-spacing: 0.05em;
+}
+.bank-card-tier {
+  top: -2px;
+  right: 1.75em;
+  font-size: 0.45em;
+  color: rgba(255,255,255,0.66);
+}
+.bank-card-network-text {
+  bottom: 0.25em;
+  right: 0.8em;
+  font-size: 0.6em;
+}
+.bank-card-number {
+  top: 56%;
+  left: 0.75em;
+  font-size: 0.72em;
+  letter-spacing: 0.15em;
+  font-family: "Courier New", monospace;
+}
+.bank-card-holder {
+  bottom: 0.35em;
+  left: 0.75em;
+  font-size: 0.5em;
+  letter-spacing: 0.05em;
+}
+.bank-card-expiry {
+  bottom: 0.35em;
+  left: 52%;
+  font-size: 0.5em;
+  letter-spacing: 0.05em;
+}
+
+/* ── Mastercard overlapping circles ── */
+.bank-card-mc {
+  position: absolute;
+  bottom: 1.1em;
+  right: 0.5em;
+  background: linear-gradient(90deg, rgba(75,75,75,0.25) 0%, rgba(121,121,121,1) 100%);
+  color: #fff;
+  height: 2.1em;
+  width: 2.1em;
+  border: 1px solid #bbb;
+  border-radius: 50%;
+}
+.bank-card-mc.mc-one {
+  right: 1.75em;
+}
+
+/* ── Visa text logo ── */
+.bank-card-visa-logo {
+  position: absolute;
+  bottom: 1em;
+  right: 0.65em;
+  font-size: 1.1em;
+  font-weight: 800;
+  font-style: italic;
+  letter-spacing: 0.08em;
+  text-shadow: -1px -1px #333;
+  color: #fff;
+  opacity: 0.75;
+}
+
+/* ── EMV chip ── */
+.bank-card-chip {
+  position: absolute;
+  top: 27.5%;
+  left: 8.25%;
+}
+
+/* ── Frozen / disabled overlay ── */
+.bank-card-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(3px);
+  border-radius: inherit;
+}
+
+/* ── Size variants ── */
+.bank-card-compact {
+  width: 280px;
+  font-size: 14px;
+}
+.bank-card-full {
+  width: 380px;
+  font-size: 18px;
+}
+

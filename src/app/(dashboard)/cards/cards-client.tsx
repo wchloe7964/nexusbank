@@ -13,6 +13,7 @@ import {
   Snowflake, Wifi, ShieldCheck, Settings, Globe, Landmark,
   AlertTriangle, Eye, EyeOff, Pencil, Check, X,
 } from 'lucide-react'
+import { BankCard } from '@/components/shared/bank-card'
 import type { Card as CardType } from '@/lib/types'
 import {
   toggleCardFreeze, toggleCardContactless, toggleOnlinePayments,
@@ -185,52 +186,7 @@ export function CardsClient({ initialCards }: CardsClientProps) {
             } ${card.is_frozen || card.status === 'reported_lost' ? 'opacity-60' : ''}`}
             style={{ minWidth: '280px' }}
           >
-            <div className={`relative overflow-hidden rounded-lg p-5 text-white ${
-              card.card_type === 'debit' ? 'gradient-accent' : 'gradient-dark'
-            }`}>
-              <div className="absolute -top-16 -right-16 h-36 w-36 rounded-full bg-white/[0.06] blur-2xl" />
-              <div className="absolute -bottom-12 -left-12 h-28 w-28 rounded-full bg-white/[0.04] blur-2xl" />
-              {(card.is_frozen || card.status === 'reported_lost') && (
-                <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/40 backdrop-blur-sm rounded-lg">
-                  <div className="flex items-center gap-2 text-white">
-                    {card.status === 'reported_lost' ? (
-                      <>
-                        <AlertTriangle className="h-5 w-5" />
-                        <span className="text-sm font-medium">REPORTED LOST</span>
-                      </>
-                    ) : (
-                      <>
-                        <Snowflake className="h-5 w-5" />
-                        <span className="text-sm font-medium">FROZEN</span>
-                      </>
-                    )}
-                  </div>
-                </div>
-              )}
-              <div className="relative z-10">
-                <div className="flex items-start justify-between">
-                  <div className="text-xs opacity-80 uppercase">
-                    {card.card_type === 'debit' ? 'NexusBank Debit' : 'NexusBank Credit'}
-                  </div>
-                  {card.is_contactless_enabled && (
-                    <Wifi className="h-4 w-4 opacity-80 rotate-90" />
-                  )}
-                </div>
-                <div className="mt-6 font-mono text-lg tracking-widest tabular-nums">
-                  •••• •••• •••• {card.card_number_last_four}
-                </div>
-                <div className="mt-4 flex items-end justify-between">
-                  <div>
-                    <div className="text-[10px] opacity-60 uppercase">Cardholder</div>
-                    <div className="text-xs font-medium">{card.card_holder_name}</div>
-                  </div>
-                  <div>
-                    <div className="text-[10px] opacity-60 uppercase">Expires</div>
-                    <div className="text-xs font-medium tabular-nums">{card.expiry_date}</div>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <BankCard variant="debit" card={card} size="compact" />
           </button>
         ))}
       </div>

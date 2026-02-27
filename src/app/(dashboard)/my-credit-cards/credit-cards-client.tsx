@@ -9,6 +9,7 @@ import { Switch } from '@/components/ui/switch'
 import { formatGBP } from '@/lib/utils/currency'
 import { cardNetworkConfigs, cardStatusConfigs } from '@/lib/constants/credit-cards'
 import { CircleDollarSign, Snowflake, CreditCard, ChevronRight, Wallet } from 'lucide-react'
+import { BankCard } from '@/components/shared/bank-card'
 import Link from 'next/link'
 import type { CreditCard as CreditCardType, Account } from '@/lib/types'
 import { makeCreditCardPayment, toggleCreditCardFreeze } from './actions'
@@ -146,23 +147,8 @@ export function CreditCardsClient({ creditCards: initialCards, accounts }: Props
               <CardContent className="p-0">
                 <div className="flex flex-col lg:flex-row">
                   {/* Visual Card */}
-                  <div className={`${network.bg} p-6 text-white min-w-[280px] lg:min-w-[320px]`}>
-                    <div className="flex items-center justify-between mb-8">
-                      <span className="text-sm font-medium opacity-90">{card.card_name}</span>
-                      <span className="text-lg font-bold tracking-wider">{network.logo}</span>
-                    </div>
-                    <p className="text-xs opacity-70 mb-1">Card Number</p>
-                    <p className="text-lg font-mono tracking-widest mb-6">•••• •••• •••• {card.card_number_last_four}</p>
-                    <div className="flex items-end justify-between">
-                      <div>
-                        <p className="text-xs opacity-70">Balance</p>
-                        <p className="text-xl font-bold">{formatGBP(Number(card.current_balance))}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-xs opacity-70">Limit</p>
-                        <p className="text-sm font-semibold">{formatGBP(Number(card.credit_limit))}</p>
-                      </div>
-                    </div>
+                  <div className="min-w-[280px] lg:min-w-[320px] flex-shrink-0">
+                    <BankCard variant="credit" card={card} size="compact" />
                   </div>
 
                   {/* Card Details */}

@@ -16,6 +16,7 @@ import {
   Zap,
   CreditCard,
   MessageSquare,
+  MessagesSquare,
   FileText,
   Gauge,
   FileWarning,
@@ -49,6 +50,7 @@ export const adminNavigationGroups: AdminNavGroup[] = [
     label: 'Operations',
     collapsible: true,
     items: [
+      { label: 'Messages', href: '/admin/messages', icon: MessagesSquare },
       { label: 'Disputes', href: '/admin/disputes', icon: ShieldAlert },
       { label: 'Security', href: '/admin/security', icon: Shield },
       { label: 'Payments', href: '/admin/payments-ops', icon: Zap },

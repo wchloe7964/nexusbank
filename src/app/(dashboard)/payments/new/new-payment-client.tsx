@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -37,6 +37,12 @@ export function NewPaymentClient({ accounts, hasPinSet }: NewPaymentClientProps)
 
   const parsedAmount = parseFloat(amount)
   const account = accounts.find((a) => a.id === accountId)
+
+  // Only show active accounts in dropdowns
+  const activeAccounts = useMemo(
+    () => accounts.filter((a) => a.is_active !== false && (!a.status || a.status === 'active')),
+    [accounts],
+  )
 
   function handleReview() {
     if (!accountId || !payeeName || !sortCode || !accountNumber || !amount || parsedAmount <= 0) return
@@ -96,7 +102,7 @@ export function NewPaymentClient({ accounts, hasPinSet }: NewPaymentClientProps)
               <label className="text-sm font-medium">Pay from</label>
               <Select value={accountId} onChange={(e) => setAccountId(e.target.value)}>
                 <option value="">Select account</option>
-                {accounts.map((a) => (
+                {activeAccounts.map((a) => (
                   <option key={a.id} value={a.id}>{a.account_name} ({formatGBP(a.balance)})</option>
                 ))}
               </Select>
@@ -218,7 +224,7 @@ export function NewPaymentClient({ accounts, hasPinSet }: NewPaymentClientProps)
 
       {step === 'success' && (
         <Card>
-          <CardContent className="flex flex-col items-center p-8 text-center">
+          <CardContent className="flex flex-col items-center p-5 lg:p-8 text-center">
             <div className="mb-4 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 p-4">
               <CheckCircle className="h-8 w-8 text-success" />
             </div>

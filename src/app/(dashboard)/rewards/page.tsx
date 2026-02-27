@@ -15,7 +15,7 @@ export default async function RewardsPage() {
   const hasData = summary.totalEarned > 0 || recentRewards.length > 0
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 lg:space-y-8">
       <PageHeader
         title="Rewards & Cashback"
         description="Earn cashback on every card transaction"
@@ -23,7 +23,7 @@ export default async function RewardsPage() {
 
       {!hasData ? (
         <Card>
-          <CardContent className="p-8 text-center">
+          <CardContent className="p-5 lg:p-8 text-center">
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-muted mb-4">
               <Gift className="h-5 w-5 text-muted-foreground" />
             </div>

@@ -59,7 +59,7 @@ export default function TermsPage() {
           <p>NexusBank offers the following personal account types:</p>
           <ul className="mt-3 list-disc pl-6 space-y-1.5">
             <li>
-              <strong>Everyday Current Account</strong> — a fee-free current account with
+              <strong>Current Account</strong> — a fee-free current account with
               a Visa debit card, contactless payments, and full access to online and mobile
               banking.
             </li>
@@ -133,7 +133,7 @@ export default function TermsPage() {
           <p>
             A full schedule of our current fees and charges is available in our Tariff of
             Charges document, which can be accessed on our website, in the mobile app, or
-            by requesting a copy from any NexusBank branch or by calling 0800 123 4567.
+            by requesting a copy from any NexusBank branch or by contacting us on WhatsApp at +44 7365 192524.
             Key fees include:
           </p>
           <ul className="mt-3 list-disc pl-6 space-y-1.5">
@@ -217,9 +217,9 @@ export default function TermsPage() {
               including NexusBank staff. We will never ask you for your full password.
             </li>
             <li>
-              Contacting us on 0800 123 4567 immediately if your card is lost, stolen, or
-              you suspect unauthorised use. You can also freeze your card instantly through
-              the App.
+              Contacting us on WhatsApp at +44 7365 192524 immediately if your card is lost,
+              stolen, or you suspect unauthorised use. You can also freeze your card
+              instantly through the App.
             </li>
             <li>
               Reviewing your statements and transaction history regularly and reporting any
@@ -296,7 +296,7 @@ export default function TermsPage() {
           </p>
           <ul className="mt-3 list-disc pl-6 space-y-1.5">
             <li>
-              calling our dedicated complaints line on <strong>0800 123 4568</strong>;
+              contacting us on WhatsApp at <strong>+44 7365 192524</strong>;
             </li>
             <li>
               emailing{' '}
@@ -356,8 +356,8 @@ export default function TermsPage() {
             Questions about these Terms?
           </h3>
           <p>
-            Contact our Customer Services team on{' '}
-            <strong>0800 123 4567</strong> (Monday to Friday, 8am&ndash;8pm;
+            Contact our Customer Services team on WhatsApp at{' '}
+            <strong>+44 7365 192524</strong> (Monday to Friday, 8am&ndash;8pm;
             Saturday 9am&ndash;5pm) or email{' '}
             <Link href="mailto:help@nexusbank.co.uk" className="text-primary hover:underline underline-offset-4">
               help@nexusbank.co.uk

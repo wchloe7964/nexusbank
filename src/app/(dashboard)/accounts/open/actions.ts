@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { randomInt } from 'crypto'
 import type { AccountType } from '@/lib/types'
-import { requireAuth } from '@/lib/validation'
+import { requireAuth, requireKycVerified } from '@/lib/validation'
 
 function generateSortCode(): string {
   const p2 = String(randomInt(0, 100)).padStart(2, '0')
@@ -43,6 +43,9 @@ export async function openNewAccount(input: OpenAccountInput): Promise<{
 }> {
   const supabase = await createClient()
   const userId = await requireAuth(supabase)
+
+  // ── KYC verification ──
+  await requireKycVerified(supabase, userId)
 
   // Validate account type
   if (!VALID_ACCOUNT_TYPES.includes(input.accountType)) {

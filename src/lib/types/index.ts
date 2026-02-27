@@ -165,9 +165,20 @@ export interface Profile {
   role: UserRole
   membership_number: string | null
   security_score: number
+  kyc_status: KycProfileStatus
+  risk_rating: string | null
+  customer_category: string | null
+  pep_status: boolean
+  sanctions_clear: boolean
+  kyc_verified_at: string | null
+  kyc_next_review: string | null
   created_at: string
   updated_at: string
 }
+
+export type KycProfileStatus = 'not_started' | 'pending' | 'verified' | 'failed' | 'expired'
+
+export type AccountStatus = 'active' | 'frozen' | 'suspended' | 'closed'
 
 export interface Account {
   id: string
@@ -183,6 +194,7 @@ export interface Account {
   overdraft_limit: number
   is_primary: boolean
   is_active: boolean
+  status: AccountStatus
   nickname: string | null
   color: string
   icon: string

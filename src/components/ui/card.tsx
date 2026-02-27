@@ -2,13 +2,13 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils/cn'
 
 const cardVariants = cva(
-  'rounded-xl border text-card-foreground transition-all duration-200',
+  'rounded-lg lg:rounded-xl border text-card-foreground transition-all duration-200',
   {
     variants: {
       variant: {
-        default: 'border-border bg-card shadow-xs',
-        raised: 'border-border/50 bg-card shadow-sm hover:shadow-md',
-        elevated: 'border-transparent bg-card shadow-md',
+        default: 'border-border bg-card shadow-none lg:shadow-xs',
+        raised: 'border-border/50 bg-card shadow-none lg:shadow-sm lg:hover:shadow-md',
+        elevated: 'border-transparent bg-card shadow-none lg:shadow-md',
         glass: 'border-white/20 glass',
         ghost: 'border-transparent bg-transparent shadow-none',
       },
@@ -46,7 +46,7 @@ export function Card({ className, variant, interactive, accent, ...props }: Card
 }
 
 export function CardHeader({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn('flex flex-col space-y-1.5 p-6', className)} {...props} />
+  return <div className={cn('flex flex-col space-y-1.5 p-4 lg:p-6', className)} {...props} />
 }
 
 export function CardTitle({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) {
@@ -58,9 +58,9 @@ export function CardDescription({ className, ...props }: React.HTMLAttributes<HT
 }
 
 export function CardContent({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn('p-6 pt-0', className)} {...props} />
+  return <div className={cn('p-4 pt-0 lg:p-6 lg:pt-0', className)} {...props} />
 }
 
 export function CardFooter({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn('flex items-center p-6 pt-0', className)} {...props} />
+  return <div className={cn('flex items-center p-4 pt-0 lg:p-6 lg:pt-0', className)} {...props} />
 }

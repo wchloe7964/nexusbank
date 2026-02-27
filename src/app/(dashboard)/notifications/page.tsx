@@ -12,7 +12,7 @@ export default async function NotificationsPage() {
   ])
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 lg:space-y-8">
       <PageHeader
         title="Notifications"
         description={unreadCount > 0 ? `${unreadCount} unread notifications` : 'All caught up'}
@@ -21,7 +21,7 @@ export default async function NotificationsPage() {
 
       {notifications.length === 0 ? (
         <Card>
-          <CardContent className="p-8 text-center">
+          <CardContent className="p-5 lg:p-8 text-center">
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-muted mb-4">
               <Bell className="h-5 w-5 text-muted-foreground" />
             </div>

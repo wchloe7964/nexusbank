@@ -5,11 +5,12 @@ import { MobileDashboard } from '@/components/dashboard/mobile-dashboard'
 import { formatGBP } from '@/lib/utils/currency'
 import { formatTransactionDate } from '@/lib/utils/dates'
 import { transactionCategories } from '@/lib/constants/categories'
-import { ArrowLeftRight, Receipt, CreditCard, TrendingUp, TrendingDown, Wallet, ArrowUpRight, ArrowDownLeft, ChevronRight } from 'lucide-react'
+import { ArrowLeftRight, Receipt, CreditCard, TrendingUp, TrendingDown, Wallet, ArrowUpRight, ArrowDownLeft, ChevronRight, EyeOff } from 'lucide-react'
 import Link from 'next/link'
 import { getAccounts } from '@/lib/queries/accounts'
 import { getRecentTransactions, getSpendingByCategory } from '@/lib/queries/transactions'
 import { getProfile } from '@/lib/queries/profile'
+import { KycBanner } from '@/components/shared/kyc-banner'
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 
@@ -60,16 +61,24 @@ export default async function DashboardPage() {
 
   const totalBalance = accounts.reduce((sum, acc) => sum + Number(acc.balance), 0)
   const visibleAccounts = accounts.filter((a) => !a.hide_from_dashboard)
+  const hiddenAccounts = accounts.filter((a) => a.hide_from_dashboard)
+  const hiddenCount = hiddenAccounts.length
   const firstName = profile.full_name?.split(' ')[0] ?? 'there'
   const greeting = getGreeting()
 
-  // Primary account for mobile hero (first current account, or first account)
-  const primaryAccount = accounts.find((a) => a.account_type === 'current') ?? accounts[0] ?? null
+  // Primary account for mobile hero — prefer visible current account, then any visible, then fallback to any
+  const primaryAccount =
+    visibleAccounts.find((a) => a.account_type === 'current') ??
+    visibleAccounts[0] ??
+    accounts.find((a) => a.account_type === 'current') ??
+    accounts[0] ??
+    null
 
   return (
     <>
       {/* ── Mobile Dashboard ─────────────────────────────────────────── */}
       <MobileDashboard
+        kycStatus={profile.kyc_status}
         primaryAccount={
           primaryAccount
             ? {
@@ -80,11 +89,25 @@ export default async function DashboardPage() {
                 available_balance: Number(primaryAccount.available_balance),
                 sort_code: primaryAccount.sort_code ?? undefined,
                 account_number: primaryAccount.account_number ?? undefined,
+                is_active: primaryAccount.is_active,
+                status: primaryAccount.status,
               }
             : null
         }
         totalBalance={totalBalance}
-        accountCount={accounts.length}
+        accountCount={visibleAccounts.length}
+        hiddenCount={hiddenCount}
+        accounts={visibleAccounts.map((a) => ({
+          id: a.id,
+          account_name: a.account_name,
+          account_type: a.account_type,
+          balance: Number(a.balance),
+          available_balance: Number(a.available_balance),
+          sort_code: a.sort_code ?? undefined,
+          account_number: a.account_number ?? undefined,
+          is_active: a.is_active,
+          status: a.status,
+        }))}
         recentTransactions={recentTransactions.map((tx) => ({
           id: tx.id,
           description: tx.description,
@@ -116,6 +139,11 @@ export default async function DashboardPage() {
             </p>
           </CardContent>
         </Card>
+
+        {/* KYC Banner (desktop) */}
+        {profile.kyc_status !== 'verified' && (
+          <KycBanner status={profile.kyc_status} />
+        )}
 
         {/* Quick Actions */}
         <div className="grid grid-cols-3 gap-3">
@@ -174,7 +202,7 @@ export default async function DashboardPage() {
                 </Link>
               ))}
             </div>
-          ) : (
+          ) : accounts.length > 0 ? null : (
             <Card>
               <CardContent className="flex flex-col items-center justify-center py-12 text-center">
                 <div className="mb-5 rounded-2xl bg-gradient-to-br from-muted to-muted/60 p-5">
@@ -184,6 +212,23 @@ export default async function DashboardPage() {
                 <p className="text-xs text-muted-foreground mt-1">Open an account to get started</p>
               </CardContent>
             </Card>
+          )}
+
+          {/* Hidden accounts hint */}
+          {hiddenCount > 0 && (
+            <Link href="/accounts" className="block group">
+              <div className="flex items-center gap-3 rounded-xl border border-dashed border-border/60 bg-muted/30 px-4 py-3 transition-all hover:border-border hover:bg-muted/50">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted">
+                  <EyeOff className="h-3.5 w-3.5 text-muted-foreground" />
+                </div>
+                <p className="flex-1 text-sm text-muted-foreground">
+                  You&apos;ve hidden <span className="font-medium text-foreground">{hiddenCount} account{hiddenCount !== 1 ? 's' : ''}</span> from this view
+                </p>
+                <span className="text-xs font-medium text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                  View all →
+                </span>
+              </div>
+            </Link>
           )}
         </div>
 

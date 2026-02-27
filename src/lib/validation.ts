@@ -82,7 +82,7 @@ export async function verifyAccountOwnership(
   supabase: SupabaseClient,
   accountId: string,
   userId: string,
-  select = 'id, balance, available_balance, account_name',
+  select = 'id, balance, available_balance, account_name, is_active, status',
 ): Promise<Record<string, any>> {
   const { data, error } = await supabase
     .from('accounts')
@@ -92,7 +92,17 @@ export async function verifyAccountOwnership(
     .single()
 
   if (error || !data) throw new Error('Account not found or access denied')
-  return data as Record<string, any>
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const row = data as Record<string, any>
+
+  // Block operations on frozen / suspended / closed accounts
+  if (row.is_active === false || (row.status && row.status !== 'active')) {
+    const label = row.status === 'frozen' ? 'frozen' : row.status === 'closed' ? 'closed' : 'restricted'
+    throw new Error(`This account is ${label}. Transactions are not permitted.`)
+  }
+
+  return row
 }
 
 /**
@@ -133,6 +143,43 @@ export async function verifyCardOwnership(
 
   if (error || !data) throw new Error('Card not found or access denied')
   return data as Record<string, any>
+}
+
+// ---------------------------------------------------------------------------
+// KYC verification — ensures the user has completed identity verification
+// ---------------------------------------------------------------------------
+
+/**
+ * Verifies the user's KYC status is 'verified'.
+ * Blocks all financial operations (transfers, payments, account opening)
+ * when KYC is not complete.
+ */
+export async function requireKycVerified(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<void> {
+  const { data: profile, error } = await supabase
+    .from('profiles')
+    .select('kyc_status')
+    .eq('id', userId)
+    .single()
+
+  if (error || !profile) {
+    throw new Error('Unable to verify your identity status. Please try again.')
+  }
+
+  const status = (profile as Record<string, unknown>).kyc_status as string | null
+
+  if (status !== 'verified') {
+    const messages: Record<string, string> = {
+      not_started: 'You must complete identity verification before making transactions. Go to Settings → Verification to get started.',
+      pending: 'Your identity verification is still being reviewed. You will be able to make transactions once it has been approved.',
+      failed: 'Your identity verification was unsuccessful. Please contact support or resubmit your documents in Settings → Verification.',
+      expired: 'Your identity verification has expired. Please update your documents in Settings → Verification to continue making transactions.',
+    }
+
+    throw new Error(messages[status ?? 'not_started'] || messages.not_started)
+  }
 }
 
 /**

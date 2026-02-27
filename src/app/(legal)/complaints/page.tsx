@@ -54,15 +54,14 @@ export default function ComplaintsPage() {
 
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
             <div className="rounded-lg border border-border bg-card p-5 hover:border-primary transition-colors">
-              <h3 className="text-sm font-semibold text-foreground mb-2">By phone</h3>
+              <h3 className="text-sm font-semibold text-foreground mb-2">By WhatsApp</h3>
               <p>
-                Call our dedicated complaints line on{' '}
-                <strong>0800 123 4568</strong>
+                Message us on WhatsApp at{' '}
+                <strong>+44 7365 192524</strong>
               </p>
               <p className="mt-1 text-xs text-muted-foreground">
                 Monday to Friday, 8am&ndash;8pm<br />
-                Saturday, 9am&ndash;5pm<br />
-                Calls are free from UK landlines and mobiles
+                Saturday, 9am&ndash;5pm
               </p>
             </div>
             <div className="rounded-lg border border-border bg-card p-5 hover:border-primary transition-colors">
@@ -347,10 +346,12 @@ export default function ComplaintsPage() {
           </p>
           <div className="flex flex-wrap gap-3">
             <Link
-              href="tel:08001234568"
+              href="https://wa.me/447365192524"
+              target="_blank"
+              rel="noopener noreferrer"
               className="inline-flex items-center rounded-full bg-primary px-5 py-2 text-xs font-semibold text-white shadow-[0_2px_6px_rgba(0,0,0,0.1)] hover:brightness-105 transition-all"
             >
-              Call 0800 123 4568
+              WhatsApp +44 7365 192524
             </Link>
             <Link
               href="mailto:complaints@nexusbank.co.uk"

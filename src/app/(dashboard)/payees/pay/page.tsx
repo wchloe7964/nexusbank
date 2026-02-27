@@ -26,10 +26,10 @@ export default async function PayPage({ searchParams }: PayPageProps) {
 
   if (!payee) {
     return (
-      <div className="mx-auto max-w-xl space-y-8">
+      <div className="mx-auto max-w-xl space-y-6 lg:space-y-8">
         <PageHeader title="Pay a Payee" />
         <Card>
-          <CardContent className="p-8 text-center">
+          <CardContent className="p-5 lg:p-8 text-center">
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-muted mb-4">
               <Send className="h-5 w-5 text-muted-foreground" />
             </div>
@@ -51,10 +51,10 @@ export default async function PayPage({ searchParams }: PayPageProps) {
 
   if (accounts.length === 0) {
     return (
-      <div className="mx-auto max-w-xl space-y-8">
+      <div className="mx-auto max-w-xl space-y-6 lg:space-y-8">
         <PageHeader title="Pay a Payee" />
         <Card>
-          <CardContent className="p-8 text-center">
+          <CardContent className="p-5 lg:p-8 text-center">
             <p className="text-sm font-medium text-foreground">No accounts available</p>
             <p className="mt-1 text-xs text-muted-foreground">
               You need at least one account to make a payment.
@@ -66,7 +66,7 @@ export default async function PayPage({ searchParams }: PayPageProps) {
   }
 
   return (
-    <div className="mx-auto max-w-xl space-y-8">
+    <div className="mx-auto max-w-xl space-y-6 lg:space-y-8">
       <PageHeader
         title={`Pay ${payee.name}`}
         description="Send a payment to this payee"

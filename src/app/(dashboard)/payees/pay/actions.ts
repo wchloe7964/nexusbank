@@ -2,7 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
-import { requireAuth, validateAmount, verifyAccountOwnership, verifyPayeeOwnership } from '@/lib/validation'
+import { requireAuth, requireKycVerified, validateAmount, verifyAccountOwnership, verifyPayeeOwnership } from '@/lib/validation'
 import { scoreFraud } from '@/lib/fraud/scoring-engine'
 import { checkTransaction } from '@/lib/kyc/aml-monitor'
 import { logAuditEvent } from '@/lib/audit'
@@ -25,6 +25,9 @@ export async function executePayeePayment(data: {
 }> {
   const supabase = await createClient()
   const userId = await requireAuth(supabase)
+
+  // ── KYC verification ──
+  await requireKycVerified(supabase, userId)
 
   // ── Transfer PIN validation ──
   const pinValid = await validatePinForUser(userId, data.pin)

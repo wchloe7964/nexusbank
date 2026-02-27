@@ -61,45 +61,55 @@ export default async function AccountsPage() {
         </Card>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {accounts.map((account) => (
-            <Link key={account.id} href={`/accounts/${account.id}`}>
-              <Card variant="raised" interactive>
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="rounded-xl bg-primary/10 p-2.5">
-                        <Wallet className="h-4 w-4 text-primary" />
+          {accounts.map((account) => {
+            const isRestricted = !account.is_active || (account.status && account.status !== 'active')
+            return (
+              <Link key={account.id} href={`/accounts/${account.id}`}>
+                <Card variant="raised" interactive className={isRestricted ? 'opacity-60' : ''}>
+                  <CardContent className="p-6">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className={`rounded-xl p-2.5 ${isRestricted ? 'bg-destructive/10' : 'bg-primary/10'}`}>
+                          <Wallet className={`h-4 w-4 ${isRestricted ? 'text-destructive' : 'text-primary'}`} />
+                        </div>
+                        <div>
+                          <p className="font-medium tracking-tight">{account.account_name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {formatSortCode(account.sort_code)} &middot; ****{account.account_number.slice(-4)}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-medium tracking-tight">{account.account_name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {formatSortCode(account.sort_code)} &middot; ****{account.account_number.slice(-4)}
-                        </p>
+                      <div className="flex flex-col items-end gap-1">
+                        {isRestricted && (
+                          <Badge variant="destructive">
+                            {account.status === 'frozen' ? 'Frozen' : account.status === 'closed' ? 'Closed' : 'Restricted'}
+                          </Badge>
+                        )}
+                        <Badge variant={typeVariants[account.account_type] || 'default'}>
+                          {typeLabels[account.account_type] || account.account_type}
+                        </Badge>
                       </div>
                     </div>
-                    <Badge variant={typeVariants[account.account_type] || 'default'}>
-                      {typeLabels[account.account_type] || account.account_type}
-                    </Badge>
-                  </div>
-                  <div className="mt-5">
-                    <p className="text-sm text-muted-foreground">Balance</p>
-                    <p className="text-2xl font-bold tracking-tight tabular-nums">{formatGBP(account.balance)}</p>
-                  </div>
-                  <div className="mt-2 flex justify-between text-xs text-muted-foreground">
-                    <span className="tabular-nums">Available: {formatGBP(account.available_balance)}</span>
-                    {account.interest_rate > 0 && (
-                      <span className="text-success tabular-nums">{(account.interest_rate * 100).toFixed(2)}% AER</span>
+                    <div className="mt-5">
+                      <p className="text-sm text-muted-foreground">Balance</p>
+                      <p className="text-2xl font-bold tracking-tight tabular-nums">{formatGBP(account.balance)}</p>
+                    </div>
+                    <div className="mt-2 flex justify-between text-xs text-muted-foreground">
+                      <span className="tabular-nums">Available: {formatGBP(account.available_balance)}</span>
+                      {account.interest_rate > 0 && (
+                        <span className="text-success tabular-nums">{(account.interest_rate * 100).toFixed(2)}% AER</span>
+                      )}
+                    </div>
+                    {account.overdraft_limit > 0 && (
+                      <p className="mt-1 text-xs text-muted-foreground tabular-nums">
+                        Overdraft: {formatGBP(account.overdraft_limit)}
+                      </p>
                     )}
-                  </div>
-                  {account.overdraft_limit > 0 && (
-                    <p className="mt-1 text-xs text-muted-foreground tabular-nums">
-                      Overdraft: {formatGBP(account.overdraft_limit)}
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-            </Link>
-          ))}
+                  </CardContent>
+                </Card>
+              </Link>
+            )
+          })}
         </div>
       )}
     </div>

@@ -1,16 +1,20 @@
 'use client'
 
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useCallback } from 'react'
+import { useCallback, useState } from 'react'
 import { DataTable, type Column } from '@/components/admin/data-table'
 import { StatCard } from '@/components/admin/stat-card'
 import { Badge } from '@/components/ui/badge'
-import { UserCheck, AlertTriangle, Shield, FileWarning, Clock, Users } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { UserCheck, AlertTriangle, Shield, FileWarning, Clock, Users, Eye } from 'lucide-react'
 import Link from 'next/link'
-import type { KycVerification, AmlDashboardStats } from '@/lib/types/kyc'
+import type { KycVerification, KycDocument, AmlDashboardStats } from '@/lib/types/kyc'
+import { KycReviewDialog } from './kyc-review-dialog'
+
+type KycWithDocs = KycVerification & { documents?: KycDocument[] }
 
 interface KycClientProps {
-  data: KycVerification[]
+  data: KycWithDocs[]
   total: number
   page: number
   pageSize: number
@@ -54,6 +58,7 @@ export function KycClient({
 }: KycClientProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const [reviewKyc, setReviewKyc] = useState<KycWithDocs | null>(null)
 
   const updateParams = useCallback(
     (updates: Record<string, string>) => {
@@ -71,7 +76,7 @@ export function KycClient({
     [router, searchParams]
   )
 
-  const columns: Column<KycVerification>[] = [
+  const columns: Column<KycWithDocs>[] = [
     {
       key: 'profile',
       label: 'Customer',
@@ -127,12 +132,12 @@ export function KycClient({
       ),
     },
     {
-      key: 'pep_status',
-      label: 'PEP',
+      key: 'documents',
+      label: 'Docs',
       render: (row) => (
-        row.pep_status
-          ? <Badge variant="destructive">PEP</Badge>
-          : <span className="text-[12px] text-muted-foreground">{'\u2014'}</span>
+        <span className="text-[12px] text-muted-foreground">
+          {row.documents?.length ?? 0}
+        </span>
       ),
     },
     {
@@ -145,6 +150,24 @@ export function KycClient({
             day: 'numeric', month: 'short', year: '2-digit',
           })}
         </span>
+      ),
+    },
+    {
+      key: 'actions',
+      label: '',
+      render: (row) => (
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={(e) => {
+            e.stopPropagation()
+            setReviewKyc(row)
+          }}
+          className="h-7 text-xs gap-1.5"
+        >
+          <Eye className="h-3 w-3" />
+          Review
+        </Button>
       ),
     },
   ]
@@ -203,6 +226,15 @@ export function KycClient({
           </div>
         }
       />
+
+      {/* Review Dialog */}
+      {reviewKyc && (
+        <KycReviewDialog
+          kyc={reviewKyc}
+          open={!!reviewKyc}
+          onClose={() => setReviewKyc(null)}
+        />
+      )}
     </div>
   )
 }

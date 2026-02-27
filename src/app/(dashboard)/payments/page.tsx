@@ -12,7 +12,7 @@ export default async function PaymentsPage() {
   const standingOrderCount = payments.filter((p) => p.payment_type === 'standing_order' && p.status !== 'cancelled').length
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 lg:space-y-8">
       <PageHeader
         title="Payments"
         description="Manage your regular payments and direct debits"
@@ -94,7 +94,7 @@ export default async function PaymentsPage() {
 
       {payments.length === 0 ? (
         <Card>
-          <CardContent className="p-8 text-center">
+          <CardContent className="p-5 lg:p-8 text-center">
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-muted mb-4">
               <Calendar className="h-5 w-5 text-muted-foreground" />
             </div>

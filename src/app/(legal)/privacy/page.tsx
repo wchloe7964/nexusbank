@@ -366,7 +366,7 @@ export default function PrivacyPage() {
                 </Link>
               </li>
               <li>
-                <strong>Telephone:</strong> 0800 123 4569
+                <strong>WhatsApp:</strong> +44 7365 192524
               </li>
             </ul>
             <p className="mt-3">

@@ -40,7 +40,7 @@ const tools = [
 
 export default function ToolsPage() {
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 lg:space-y-8">
       <PageHeader
         title="Financial Tools"
         description="Calculators and planners to help manage your finances"

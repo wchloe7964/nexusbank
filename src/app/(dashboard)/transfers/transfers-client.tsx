@@ -96,6 +96,12 @@ function OwnAccountTransfer({ accounts, hasPinSet, onPinCreated }: {
   // PIN
   const [showPinSetup, setShowPinSetup] = useState(false)
 
+  // Only show active accounts in dropdowns
+  const activeAccounts = useMemo(
+    () => accounts.filter((a) => a.is_active !== false && (!a.status || a.status === 'active')),
+    [accounts],
+  )
+
   const fromAccount = accounts.find((a) => a.id === fromAccountId)
   const toAccount = accounts.find((a) => a.id === toAccountId)
   const parsedAmount = parseFloat(amount)
@@ -150,16 +156,16 @@ function OwnAccountTransfer({ accounts, hasPinSet, onPinCreated }: {
     setError('')
   }
 
-  if (accounts.length < 2) {
+  if (activeAccounts.length < 2) {
     return (
       <Card>
-        <CardContent className="p-8 text-center">
+        <CardContent className="p-5 lg:p-8 text-center">
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-muted mb-4">
             <ArrowLeftRight className="h-5 w-5 text-muted-foreground" />
           </div>
-          <p className="text-sm font-medium text-foreground">Need at least two accounts</p>
+          <p className="text-sm font-medium text-foreground">Need at least two active accounts</p>
           <p className="mt-1 text-xs text-muted-foreground">
-            You need at least two accounts to transfer between them. Use the &quot;To someone else&quot; tab to send money externally.
+            You need at least two active accounts to transfer between them. Use the &quot;To someone else&quot; tab to send money externally.
           </p>
         </CardContent>
       </Card>
@@ -181,7 +187,7 @@ function OwnAccountTransfer({ accounts, hasPinSet, onPinCreated }: {
               <label className="text-sm font-medium">From account</label>
               <Select value={fromAccountId} onChange={(e) => setFromAccountId(e.target.value)} className="rounded-lg">
                 <option value="">Select account</option>
-                {accounts.map((a) => (
+                {activeAccounts.map((a) => (
                   <option key={a.id} value={a.id}>{a.account_name} ({formatGBP(a.balance)})</option>
                 ))}
               </Select>
@@ -195,7 +201,7 @@ function OwnAccountTransfer({ accounts, hasPinSet, onPinCreated }: {
               <label className="text-sm font-medium">To account</label>
               <Select value={toAccountId} onChange={(e) => setToAccountId(e.target.value)} className="rounded-lg">
                 <option value="">Select destination</option>
-                {accounts.filter((a) => a.id !== fromAccountId).map((a) => (
+                {activeAccounts.filter((a) => a.id !== fromAccountId).map((a) => (
                   <option key={a.id} value={a.id}>{a.account_name} ({formatGBP(a.balance)})</option>
                 ))}
               </Select>
@@ -297,7 +303,7 @@ function OwnAccountTransfer({ accounts, hasPinSet, onPinCreated }: {
 
       {step === 'success' && (
         <Card className="transition-all duration-200">
-          <CardContent className="flex flex-col items-center p-8 text-center">
+          <CardContent className="flex flex-col items-center p-5 lg:p-8 text-center">
             <div className="mb-4 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 p-4">
               <CheckCircle className="h-8 w-8 text-success" />
             </div>
@@ -358,6 +364,12 @@ function SendToSomeone({ accounts, payees, hasPinSet, onPinCreated }: {
     railFee?: number
     railSettlement?: string
   } | null>(null)
+
+  // Only show active accounts in dropdowns
+  const activeAccounts = useMemo(
+    () => accounts.filter((a) => a.is_active !== false && (!a.status || a.status === 'active')),
+    [accounts],
+  )
 
   const fromAccount = accounts.find((a) => a.id === fromAccountId)
   const parsedAmount = parseFloat(amount)
@@ -728,7 +740,7 @@ function SendToSomeone({ accounts, payees, hasPinSet, onPinCreated }: {
               <label className="text-sm font-medium">From account</label>
               <Select value={fromAccountId} onChange={(e) => setFromAccountId(e.target.value)} className="rounded-lg">
                 <option value="">Select account</option>
-                {accounts.map((a) => (
+                {activeAccounts.map((a) => (
                   <option key={a.id} value={a.id}>
                     {a.account_name} ({formatGBP(a.balance)})
                   </option>
@@ -896,7 +908,7 @@ function SendToSomeone({ accounts, payees, hasPinSet, onPinCreated }: {
       {/* ── Step 5: Success ── */}
       {step === 'success' && (
         <Card className="transition-all duration-200">
-          <CardContent className="flex flex-col items-center p-8 text-center">
+          <CardContent className="flex flex-col items-center p-5 lg:p-8 text-center">
             <div className="mb-4 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 p-4">
               <CheckCircle className="h-8 w-8 text-success" />
             </div>

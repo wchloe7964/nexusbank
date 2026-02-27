@@ -18,7 +18,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
       <div className="flex flex-1 flex-col overflow-hidden">
         <Topbar userName={userName} unreadCount={unreadCount} />
-        <main id="main-content" role="main" className="flex-1 overflow-y-auto pb-20 lg:pb-0">
+        <main id="main-content" role="main" className="flex-1 overflow-y-auto pb-20 lg:pb-0 bg-[#f7f5f4] dark:bg-background lg:bg-background">
           <div className="mx-auto max-w-6xl p-4 lg:p-8">
             {children}
           </div>

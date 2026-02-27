@@ -16,7 +16,7 @@ export default async function SavingsPage() {
   )
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 lg:space-y-8">
       <PageHeader
         title="Savings Goals"
         description="Set targets and track your progress"
@@ -24,7 +24,7 @@ export default async function SavingsPage() {
 
       {goals.length === 0 && savingsAccounts.length === 0 ? (
         <Card>
-          <CardContent className="p-8 text-center">
+          <CardContent className="p-5 lg:p-8 text-center">
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-muted mb-4">
               <PiggyBank className="h-5 w-5 text-muted-foreground" />
             </div>

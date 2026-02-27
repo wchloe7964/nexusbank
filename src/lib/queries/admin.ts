@@ -241,9 +241,11 @@ export async function getAdminDisputes(filters: AdminDisputeFilters = {}): Promi
   const from = (page - 1) * pageSize
   const to = from + pageSize - 1
 
+  // disputes.user_id → auth.users(id), no direct FK to profiles
+  // so we fetch disputes + profiles separately and merge
   let query = admin
     .from('disputes')
-    .select('*, transaction:transactions(*), profile:profiles!disputes_profile_fk(full_name, email)', { count: 'exact' })
+    .select('*, transaction:transactions(*)', { count: 'exact' })
 
   if (filters.status && filters.status !== 'all') {
     query = query.eq('status', filters.status)
@@ -253,12 +255,38 @@ export async function getAdminDisputes(filters: AdminDisputeFilters = {}): Promi
 
   const { data, error, count } = await query
 
-  if (error) throw new Error(error.message)
+  if (error) {
+    console.error('Admin disputes query error:', error.message)
+    throw new Error('Failed to load disputes')
+  }
 
+  const disputes = (data ?? []) as (Dispute & { user_id: string })[]
   const total = count ?? 0
 
+  // Fetch profiles for all user_ids in this page
+  const userIds = [...new Set(disputes.map((d) => d.user_id))]
+  let profileMap: Record<string, { full_name: string; email: string }> = {}
+
+  if (userIds.length > 0) {
+    const { data: profiles } = await admin
+      .from('profiles')
+      .select('id, full_name, email')
+      .in('id', userIds)
+
+    if (profiles) {
+      profileMap = Object.fromEntries(
+        profiles.map((p: { id: string; full_name: string; email: string }) => [p.id, { full_name: p.full_name, email: p.email }])
+      )
+    }
+  }
+
+  const merged = disputes.map((d) => ({
+    ...d,
+    profile: profileMap[d.user_id] ?? undefined,
+  }))
+
   return {
-    data: (data ?? []) as (Dispute & { profile?: { full_name: string; email: string } })[],
+    data: merged,
     total,
     page,
     pageSize,
@@ -365,9 +393,11 @@ export async function getAdminLoginActivity(filters: AdminSecurityFilters = {}):
   const from = (page - 1) * pageSize
   const to = from + pageSize - 1
 
+  // login_activity.user_id → auth.users(id), no direct FK to profiles
+  // so we fetch activity + profiles separately and merge
   let query = admin
     .from('login_activity')
-    .select('*, profile:profiles!login_activity_profile_fk(full_name, email)', { count: 'exact' })
+    .select('*', { count: 'exact' })
 
   if (filters.eventType && filters.eventType !== 'all') {
     query = query.eq('event_type', filters.eventType)
@@ -380,12 +410,38 @@ export async function getAdminLoginActivity(filters: AdminSecurityFilters = {}):
 
   const { data, error, count } = await query
 
-  if (error) throw new Error(error.message)
+  if (error) {
+    console.error('Admin login activity query error:', error.message)
+    throw new Error('Failed to load login activity')
+  }
 
+  const activities = (data ?? []) as (LoginActivity & { user_id: string })[]
   const total = count ?? 0
 
+  // Fetch profiles for all user_ids in this page
+  const userIds = [...new Set(activities.map((a) => a.user_id))]
+  let profileMap: Record<string, { full_name: string; email: string }> = {}
+
+  if (userIds.length > 0) {
+    const { data: profiles } = await admin
+      .from('profiles')
+      .select('id, full_name, email')
+      .in('id', userIds)
+
+    if (profiles) {
+      profileMap = Object.fromEntries(
+        profiles.map((p: { id: string; full_name: string; email: string }) => [p.id, { full_name: p.full_name, email: p.email }])
+      )
+    }
+  }
+
+  const merged = activities.map((a) => ({
+    ...a,
+    profile: profileMap[a.user_id] ?? undefined,
+  }))
+
   return {
-    data: (data ?? []) as (LoginActivity & { profile?: { full_name: string; email: string } })[],
+    data: merged,
     total,
     page,
     pageSize,

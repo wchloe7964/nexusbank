@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { requireKycVerified } from '@/lib/validation'
 import { logAuditEvent } from '@/lib/audit'
 import { getFxQuote, estimateDelivery } from '@/lib/payments/fx-rates'
 import { validateIban, validateSwiftBic, suggestPaymentMethod } from '@/lib/payments/iban-validator'
@@ -35,6 +36,9 @@ export async function submitInternationalPayment(
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Not authenticated' }
+
+  // ── KYC verification ──
+  await requireKycVerified(supabase, user.id)
 
   // Validate IBAN
   if (input.beneficiaryIban) {

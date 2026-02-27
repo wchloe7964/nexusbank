@@ -24,7 +24,7 @@ export default async function TransactionsPage() {
   })
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 lg:space-y-8">
       <PageHeader title="Transactions" description="View and search your transaction history" />
       <TransactionsClient
         initialTransactions={transactionsResult.data}

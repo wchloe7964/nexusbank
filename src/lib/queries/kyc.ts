@@ -25,7 +25,7 @@ export async function getKycVerifications(filters: KycFilters = {}): Promise<{
 
   let query = admin
     .from('kyc_verifications')
-    .select('*, profile:profiles!kyc_verifications_profile_fkey(full_name, email)', { count: 'exact' })
+    .select('*, profile:profiles!kyc_verifications_profile_fkey(full_name, email), documents:kyc_documents(*)', { count: 'exact' })
 
   if (filters.status && filters.status !== 'all') {
     query = query.eq('status', filters.status)

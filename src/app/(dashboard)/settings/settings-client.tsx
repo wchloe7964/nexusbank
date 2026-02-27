@@ -206,7 +206,7 @@ export default function SettingsClient({ profile, loginActivity, securityScore, 
   const scoreIndicator = securityScore.score >= 71 ? '[&>div]:bg-emerald-500' : securityScore.score >= 41 ? '[&>div]:bg-amber-500' : '[&>div]:bg-red-500'
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 lg:space-y-8">
       <PageHeader title="Settings" description="Manage your account preferences" />
 
       <Tabs defaultValue="profile">

@@ -48,7 +48,10 @@ export async function updateDisputeStatus(
     .update(updateData)
     .eq('id', disputeId)
 
-  if (error) throw new Error(error.message)
+  if (error) {
+    console.error('Dispute update error:', error.message)
+    throw new Error('Failed to update dispute status')
+  }
 
   if (oldDispute) {
     await admin.from('notifications').insert({
@@ -106,7 +109,10 @@ export async function updateCustomerRole(
     .update({ role: newRole })
     .eq('id', targetUserId)
 
-  if (error) throw new Error(error.message)
+  if (error) {
+    console.error('Role update error:', error.message)
+    throw new Error('Failed to update customer role')
+  }
 
   await logAuditEvent({
     eventType: 'admin_action',

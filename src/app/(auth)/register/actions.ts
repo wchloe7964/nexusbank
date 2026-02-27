@@ -90,7 +90,7 @@ export async function enrollUser(data: EnrollmentData): Promise<EnrollmentResult
   // 3. Create the bank account
   const { error: accountError } = await admin.from('accounts').insert({
     user_id: userId,
-    account_name: 'Everyday Current Account',
+    account_name: 'Current Account',
     account_type: 'current',
     sort_code: sortCode,
     account_number: accountNumber,
@@ -143,7 +143,7 @@ export async function enrollUser(data: EnrollmentData): Promise<EnrollmentResult
   await admin.from('notifications').insert({
     user_id: userId,
     title: 'Welcome to NexusBank',
-    message: `Your Everyday Current Account has been created. Your membership number is ${membershipNumber}. Keep it safe — you'll use it to log in.`,
+    message: `Your Current Account has been created. Your membership number is ${membershipNumber}. Keep it safe — you'll use it to log in.`,
     type: 'system',
     is_read: false,
   })

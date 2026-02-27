@@ -52,7 +52,7 @@ export async function createConversation(
     conversation_id: conversation.id,
     sender_id: user.id, // system message
     sender_role: 'system',
-    body: 'Thank you for your message. A member of our team will respond within 24 hours. For urgent matters, please call 0800 123 4567.',
+    body: 'Thank you for your message. A member of our team will respond within 24 hours. For urgent matters, please reach us on WhatsApp at +44 7365 192524.',
     is_read: false,
   })
 

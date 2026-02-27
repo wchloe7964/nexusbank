@@ -13,10 +13,14 @@ import {
   Coins,
   HelpCircle,
   BadgePoundSterling,
+  Landmark,
+  PiggyBank,
+  Receipt,
 } from 'lucide-react'
 
 export const transactionCategories = {
   transfer: { label: 'Transfer', icon: ArrowLeftRight, color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-950' },
+  payment: { label: 'Payment', icon: Landmark, color: 'text-teal-500', bg: 'bg-teal-50 dark:bg-teal-950' },
   salary: { label: 'Salary', icon: Banknote, color: 'text-green-500', bg: 'bg-green-50 dark:bg-green-950' },
   bills: { label: 'Bills', icon: FileText, color: 'text-orange-500', bg: 'bg-orange-50 dark:bg-orange-950' },
   groceries: { label: 'Groceries', icon: ShoppingCart, color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-950' },
@@ -28,7 +32,9 @@ export const transactionCategories = {
   education: { label: 'Education', icon: GraduationCap, color: 'text-indigo-500', bg: 'bg-indigo-50 dark:bg-indigo-950' },
   subscriptions: { label: 'Subscriptions', icon: Repeat, color: 'text-violet-500', bg: 'bg-violet-50 dark:bg-violet-950' },
   cash: { label: 'Cash', icon: Coins, color: 'text-yellow-500', bg: 'bg-yellow-50 dark:bg-yellow-950' },
-  admin_credit: { label: 'Admin Credit', icon: BadgePoundSterling, color: 'text-teal-500', bg: 'bg-teal-50 dark:bg-teal-950' },
+  interest: { label: 'Interest', icon: PiggyBank, color: 'text-green-600', bg: 'bg-green-50 dark:bg-green-950' },
+  fee: { label: 'Bank Fee', icon: Receipt, color: 'text-slate-500', bg: 'bg-slate-50 dark:bg-slate-950' },
+  admin_credit: { label: 'Account Credit', icon: BadgePoundSterling, color: 'text-teal-500', bg: 'bg-teal-50 dark:bg-teal-950' },
   other: { label: 'Other', icon: HelpCircle, color: 'text-gray-500', bg: 'bg-gray-50 dark:bg-gray-950' },
 } as const
 

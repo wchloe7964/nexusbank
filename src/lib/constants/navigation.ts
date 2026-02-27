@@ -27,6 +27,7 @@ import {
   MessageSquare,
   Globe,
   Mail,
+  Landmark,
 } from 'lucide-react'
 
 export interface NavItem {
@@ -107,9 +108,9 @@ export const navigationGroups: NavGroup[] = [
 export const navigation = navigationGroups.flatMap((g) => g.items)
 
 export const bottomNavItems = [
-  { label: 'Home', href: '/dashboard', icon: Home },
-  { label: 'Accounts', href: '/accounts', icon: Wallet },
+  { label: 'Accounts', href: '/dashboard', icon: Home },
+  { label: 'Products', href: '/products', icon: Landmark },
   { label: 'Pay & Transfer', href: '/transfers', icon: Send },
-  { label: 'Messages', href: '/messages', icon: Mail },
+  { label: 'Help', href: '/support', icon: HelpCircle },
   { label: 'More', href: '#more', icon: MoreHorizontal },
 ]

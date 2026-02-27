@@ -369,3 +369,13 @@ body {
 .barclays-admin .gradient-primary { background: linear-gradient(135deg, #00AEEF 0%, #0077B6 100%); }
 .barclays-admin .gradient-dark { background: linear-gradient(135deg, #001A33 0%, #00395D 50%, #001A33 100%); }
 .barclays-admin .gradient-hero { background: linear-gradient(135deg, #00395D 0%, #0077B6 50%, #00AEEF 100%); }
+
+/* === Print Styles (for statements) === */
+@media print {
+  body { background: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  nav, aside, .print\:hidden, header { display: none !important; }
+  main { padding: 0 !important; margin: 0 !important; max-width: none !important; }
+  .print\:shadow-none { box-shadow: none !important; }
+  .print\:border-none { border: none !important; }
+  .print\:rounded-none { border-radius: 0 !important; }
+}

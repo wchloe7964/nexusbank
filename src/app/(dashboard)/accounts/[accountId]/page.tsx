@@ -7,7 +7,7 @@ import { formatTransactionDate, formatUKDate } from '@/lib/utils/dates'
 import { formatSortCode } from '@/lib/utils/sort-code'
 import { formatAccountNumber } from '@/lib/utils/account-number'
 import { transactionCategories } from '@/lib/constants/categories'
-import { ArrowLeftRight, ArrowUpRight, ArrowDownLeft, Wallet, Gauge, ChevronRight, TrendingUp } from 'lucide-react'
+import { ArrowLeftRight, ArrowUpRight, ArrowDownLeft, Wallet, Gauge, ChevronRight, TrendingUp, Snowflake, Ban, ShieldAlert } from 'lucide-react'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getAccountById } from '@/lib/queries/accounts'
@@ -46,8 +46,11 @@ export default async function AccountDetailPage({
     notFound()
   }
 
+  const isRestricted = !account.is_active || (account.status && account.status !== 'active')
+  const statusLabel = account.status === 'frozen' ? 'Frozen' : account.status === 'closed' ? 'Closed' : account.status === 'suspended' ? 'Suspended' : null
+
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 lg:space-y-8">
       <PageHeader
         title={account.nickname || account.account_name}
         action={
@@ -60,18 +63,49 @@ export default async function AccountDetailPage({
               currentHidden={account.hide_from_dashboard ?? false}
               accountName={account.account_name}
             />
-            <Link href="/transfers">
-              <Button size="sm">
-                <ArrowLeftRight className="mr-2 h-4 w-4" />
-                Transfer
-              </Button>
-            </Link>
+            {!isRestricted && (
+              <Link href="/transfers">
+                <Button size="sm">
+                  <ArrowLeftRight className="mr-2 h-4 w-4" />
+                  Transfer
+                </Button>
+              </Link>
+            )}
           </div>
         }
       />
 
+      {/* Account Status Banner */}
+      {isRestricted && (
+        <Card className="border-destructive/30 bg-destructive/5">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              {account.status === 'frozen' ? (
+                <Snowflake className="h-5 w-5 text-blue-500 shrink-0" />
+              ) : account.status === 'closed' ? (
+                <Ban className="h-5 w-5 text-destructive shrink-0" />
+              ) : (
+                <ShieldAlert className="h-5 w-5 text-amber-500 shrink-0" />
+              )}
+              <div>
+                <p className="text-sm font-semibold text-foreground">
+                  Account {statusLabel ?? 'Restricted'}
+                </p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {account.status === 'frozen'
+                    ? 'This account has been frozen. You cannot make or receive payments. Please contact us for assistance.'
+                    : account.status === 'closed'
+                    ? 'This account has been closed. No further transactions are permitted.'
+                    : 'This account has been temporarily restricted. Please contact us for more information.'}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Account Summary Card */}
-      <Card className="border-primary/20 bg-white dark:bg-card">
+      <Card className={isRestricted ? 'border-border/50 opacity-75 bg-white dark:bg-card' : 'border-primary/20 bg-white dark:bg-card'}>
         <CardContent className="p-6">
           <div className="accent-bar mb-4" />
           <div className="flex items-start justify-between">
@@ -196,7 +230,7 @@ export default async function AccountDetailPage({
 
         {recentTransactions.length === 0 ? (
           <Card>
-            <CardContent className="p-8 text-center">
+            <CardContent className="p-5 lg:p-8 text-center">
               <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-muted mb-4">
                 <Wallet className="h-5 w-5 text-muted-foreground" />
               </div>

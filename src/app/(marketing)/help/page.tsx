@@ -108,7 +108,7 @@ const urgentActions = [
   {
     icon: "/images/icons/credit-card.svg",
     title: "Lost or stolen card",
-    desc: "Block your card instantly in the app or call our 24/7 helpline.",
+    desc: "Block your card instantly in the app or message us on WhatsApp.",
     href: "/help",
   },
   {
@@ -148,10 +148,12 @@ export default function HelpPage() {
                 <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
-                href="/help"
+                href="https://wa.me/447365192524"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 rounded-full border border-white/20 px-7 py-3 text-sm font-semibold text-white hover:bg-white/5 transition"
               >
-                Call us: 0800 123 4567
+                WhatsApp: +44 7365 192524
               </Link>
             </div>
           </div>

@@ -8,7 +8,7 @@ export default async function BudgetsPage() {
   const budgets = await getBudgetsWithSpending()
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 lg:space-y-8">
       <PageHeader
         title="Budgets"
         description="Set monthly spending limits and track your progress"

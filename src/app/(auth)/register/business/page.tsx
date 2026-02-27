@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { enrollBusinessUser } from './actions'
@@ -15,6 +15,8 @@ import {
   businessStep1Schema,
   businessStep3Schema,
 } from '@/lib/utils/validation'
+import { getCountryName, detectBrowserCountry } from '@/lib/constants/countries'
+import { CountrySelect } from '@/components/ui/country-select'
 import type { BusinessEnrollmentData, EnrollmentResult } from '@/lib/types'
 
 const INITIAL_DATA: BusinessEnrollmentData = {
@@ -24,6 +26,7 @@ const INITIAL_DATA: BusinessEnrollmentData = {
   dobDay: '',
   dobMonth: '',
   dobYear: '',
+  country: '',
   postcode: '',
   email: '',
   confirmEmail: '',
@@ -129,6 +132,15 @@ export default function BusinessRegisterPage() {
   const [autoLoginLoading, setAutoLoginLoading] = useState(false)
   const [autoLoginError, setAutoLoginError] = useState<string | null>(null)
   const [cookieModalOpen, setCookieModalOpen] = useState(false)
+
+  // Auto-detect country from browser locale on first render
+  useEffect(() => {
+    const detected = detectBrowserCountry()
+    if (detected && !data.country) {
+      setData((prev) => ({ ...prev, country: detected }))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const updateData = useCallback((updates: Partial<BusinessEnrollmentData>) => {
     setData((prev) => ({ ...prev, ...updates }))
@@ -492,15 +504,27 @@ export default function BusinessRegisterPage() {
                   )}
                 </div>
 
-                {/* Postcode */}
+                {/* Country */}
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium text-foreground">
-                    Postcode <span className="text-destructive">*</span>
+                    Country of residence <span className="text-destructive">*</span>
+                  </label>
+                  <CountrySelect
+                    value={data.country}
+                    onChange={(code) => updateData({ country: code })}
+                    error={errors.country}
+                  />
+                </div>
+
+                {/* Postal / Zip code */}
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-foreground">
+                    Postal / Zip code <span className="text-destructive">*</span>
                   </label>
                   <Input
-                    placeholder="e.g. SW1A 1AA"
+                    placeholder="Enter your postal or zip code"
                     value={data.postcode}
-                    onChange={(e) => updateData({ postcode: e.target.value.toUpperCase() })}
+                    onChange={(e) => updateData({ postcode: e.target.value })}
                     className="max-w-[200px]"
                     autoComplete="postal-code"
                   />
@@ -702,12 +726,12 @@ export default function BusinessRegisterPage() {
 
                 <div className="space-y-1.5">
                   <label className="text-sm font-medium text-foreground">
-                    Postcode <span className="text-destructive">*</span>
+                    Postal / Zip code <span className="text-destructive">*</span>
                   </label>
                   <Input
-                    placeholder="e.g. SW1A 1AA"
+                    placeholder="Enter your postal or zip code"
                     value={data.addressPostcode}
-                    onChange={(e) => updateData({ addressPostcode: e.target.value.toUpperCase() })}
+                    onChange={(e) => updateData({ addressPostcode: e.target.value })}
                     className="max-w-[200px]"
                   />
                   {errors.addressPostcode && (
@@ -806,7 +830,11 @@ export default function BusinessRegisterPage() {
                   <dd className="font-medium text-foreground">{data.dobDay}/{data.dobMonth}/{data.dobYear}</dd>
                 </div>
                 <div className="flex justify-between py-1.5 border-b border-border/20">
-                  <dt className="text-muted-foreground">Postcode</dt>
+                  <dt className="text-muted-foreground">Country</dt>
+                  <dd className="font-medium text-foreground">{getCountryName(data.country)}</dd>
+                </div>
+                <div className="flex justify-between py-1.5 border-b border-border/20">
+                  <dt className="text-muted-foreground">Postal / Zip code</dt>
                   <dd className="font-medium text-foreground">{data.postcode}</dd>
                 </div>
                 <div className="flex justify-between py-1.5 border-b border-border/20">

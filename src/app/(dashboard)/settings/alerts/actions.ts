@@ -32,7 +32,10 @@ export async function createSpendingAlert(data: {
     threshold_amount: data.thresholdAmount,
   })
 
-  if (error) throw new Error('Failed to create alert: ' + error.message)
+  if (error) {
+    console.error('Alert creation error:', error.message)
+    throw new Error('Failed to create alert. Please try again.')
+  }
   revalidatePath('/settings/alerts')
 }
 

@@ -3,7 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
-import { isScaChallengeVerified } from '@/lib/sca/sca-service'
+import { validatePinForUser } from '@/lib/pin/pin-service'
 
 export async function updateProfile(data: {
   full_name: string
@@ -41,7 +41,8 @@ export async function updateProfile(data: {
       .eq('id', user.id)
 
     if (error) {
-      return { error: error.message }
+      console.error('Profile update error:', error.message)
+      return { error: 'Failed to update profile. Please try again.' }
     }
 
     // Audit log — record what changed
@@ -72,8 +73,8 @@ export async function updateProfile(data: {
 export async function changePassword(data: {
   currentPassword: string
   newPassword: string
-  scaChallengeId?: string
-}): Promise<{ error?: string; success?: boolean; requiresSca?: boolean }> {
+  pin: string
+}): Promise<{ error?: string; success?: boolean }> {
   try {
     const supabase = await createClient()
     const {
@@ -84,13 +85,10 @@ export async function changePassword(data: {
       return { error: 'Not authenticated' }
     }
 
-    // ── SCA required for password changes ──
-    if (!data.scaChallengeId) {
-      return { requiresSca: true }
-    }
-    const scaVerified = await isScaChallengeVerified(data.scaChallengeId)
-    if (!scaVerified) {
-      return { error: 'Security verification failed or expired. Please try again.' }
+    // ── Transfer PIN required for password changes ──
+    const pinValid = await validatePinForUser(user.id, data.pin)
+    if (!pinValid) {
+      return { error: 'Incorrect transfer PIN. Please try again.' }
     }
 
     // Verify current password by attempting to sign in
@@ -109,7 +107,8 @@ export async function changePassword(data: {
     })
 
     if (updateError) {
-      return { error: updateError.message }
+      console.error('Password update error:', updateError.message)
+      return { error: 'Failed to update password. Please try again.' }
     }
 
     // Audit log
@@ -127,8 +126,8 @@ export async function changePassword(data: {
 
 export async function updateTwoFactorEnabled(
   enabled: boolean,
-  scaChallengeId?: string
-): Promise<{ error?: string; success?: boolean; requiresSca?: boolean }> {
+  pin?: string
+): Promise<{ error?: string; success?: boolean }> {
   try {
     const supabase = await createClient()
     const {
@@ -139,13 +138,13 @@ export async function updateTwoFactorEnabled(
       return { error: 'Not authenticated' }
     }
 
-    // ── SCA required for 2FA toggle ──
-    if (!scaChallengeId) {
-      return { requiresSca: true }
-    }
-    const scaVerified = await isScaChallengeVerified(scaChallengeId)
-    if (!scaVerified) {
-      return { error: 'Security verification failed or expired. Please try again.' }
+    // ── Transfer PIN required when called from settings toggle ──
+    // When called from the 2FA disable dialog, the user has already verified via TOTP code
+    if (pin) {
+      const pinValid = await validatePinForUser(user.id, pin)
+      if (!pinValid) {
+        return { error: 'Incorrect transfer PIN. Please try again.' }
+      }
     }
 
     const { error } = await supabase
@@ -156,7 +155,8 @@ export async function updateTwoFactorEnabled(
       .eq('id', user.id)
 
     if (error) {
-      return { error: error.message }
+      console.error('2FA update error:', error.message)
+      return { error: 'Failed to update two-factor settings. Please try again.' }
     }
 
     // Audit log
@@ -197,7 +197,8 @@ export async function updateNotificationPreferences(data: {
       .eq('id', user.id)
 
     if (error) {
-      return { error: error.message }
+      console.error('Notification preferences error:', error.message)
+      return { error: 'Failed to update notification preferences. Please try again.' }
     }
 
     return { success: true }
@@ -211,11 +212,12 @@ export async function signOutAllDevices(): Promise<{ error?: string; success?: b
   const { error } = await supabase.auth.signOut({ scope: 'global' })
 
   if (error) {
-    return { error: error.message }
+    console.error('Sign out error:', error.message)
+    return { error: 'Failed to sign out all devices. Please try again.' }
   }
 
   revalidatePath('/')
-  redirect('/auth/login')
+  redirect('/login')
 }
 
 export async function logSecurityEvent(

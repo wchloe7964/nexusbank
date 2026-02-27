@@ -8,7 +8,7 @@ import { checkTransaction } from '@/lib/kyc/aml-monitor'
 import { logAuditEvent } from '@/lib/audit'
 import { checkTransactionLimits, getUserKycLevel } from '@/lib/limits/check-limits'
 import { checkCoolingPeriod, markPayeeFirstUsed } from '@/lib/limits/cooling-period'
-import { requiresSca, isScaChallengeVerified } from '@/lib/sca/sca-service'
+import { validatePinForUser } from '@/lib/pin/pin-service'
 import { selectPaymentRail } from '@/lib/payments/rail-selector'
 
 export async function executePayeePayment(data: {
@@ -16,16 +16,25 @@ export async function executePayeePayment(data: {
   payeeId: string
   amount: number
   reference?: string
-  scaChallengeId?: string
+  pin: string
 }): Promise<{
   success: boolean
   blocked?: boolean
   blockReason?: string
-  requiresSca?: boolean
   rail?: string
 }> {
   const supabase = await createClient()
   const userId = await requireAuth(supabase)
+
+  // ── Transfer PIN validation ──
+  const pinValid = await validatePinForUser(userId, data.pin)
+  if (!pinValid) {
+    return {
+      success: false,
+      blocked: true,
+      blockReason: 'Incorrect transfer PIN. Please try again.',
+    }
+  }
 
   // Validate amount
   validateAmount(data.amount, 'Payment amount')
@@ -51,8 +60,18 @@ export async function executePayeePayment(data: {
     }
   }
 
+  // ── Detect internal transfer (recipient is also a NexusBank customer) ──
+  const { data: internalAccount } = await supabase
+    .from('accounts')
+    .select('id')
+    .eq('sort_code', payee.sort_code)
+    .eq('account_number', payee.account_number)
+    .eq('is_active', true)
+    .maybeSingle()
+
+  const isInternal = !!internalAccount
+
   // ── Select payment rail ──
-  const isInternal = payee.sort_code.startsWith('20-')
   const rail = selectPaymentRail(data.amount, { isInternal, isUrgent: false })
 
   // ── Cooling period ──
@@ -62,26 +81,6 @@ export async function executePayeePayment(data: {
       success: false,
       blocked: true,
       blockReason: coolingCheck.reason,
-    }
-  }
-
-  // ── SCA check ──
-  const needsSca = await requiresSca(data.amount, 'large_payment')
-  if (needsSca) {
-    if (!data.scaChallengeId) {
-      return {
-        success: false,
-        requiresSca: true,
-        blocked: false,
-      }
-    }
-    const verified = await isScaChallengeVerified(data.scaChallengeId)
-    if (!verified) {
-      return {
-        success: false,
-        blocked: true,
-        blockReason: 'Security verification failed or expired. Please try again.',
-      }
     }
   }
 
@@ -141,7 +140,8 @@ export async function executePayeePayment(data: {
   })
 
   if (rpcError) {
-    throw new Error('Payment failed: ' + rpcError.message)
+    console.error('Payment RPC error:', rpcError.message)
+    throw new Error('Payment could not be completed. Please try again or contact support.')
   }
 
   // Mark payee as used (for cooling period tracking)

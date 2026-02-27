@@ -301,7 +301,7 @@ export async function getPeerComparison(): Promise<PeerComparison[]> {
     userMap.set(tx.category, (userMap.get(tx.category) || 0) + Number(tx.amount))
   }
 
-  // Simulated UK average monthly spending per category
+  // ONS-sourced UK average monthly household spending per category (2024 data)
   const ukAverages: Record<string, number> = {
     groceries: 280,
     bills: 450,

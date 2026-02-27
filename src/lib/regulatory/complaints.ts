@@ -8,12 +8,14 @@
  * - Vulnerable customers get priority handling
  */
 
+import { randomInt } from 'crypto'
+
 /**
  * Generate a unique complaint reference in format CMP-YYYY-XXXXXX
  */
 export function generateComplaintReference(): string {
   const year = new Date().getFullYear()
-  const random = Math.floor(Math.random() * 999999)
+  const random = randomInt(0, 999999)
     .toString()
     .padStart(6, '0')
   return `CMP-${year}-${random}`

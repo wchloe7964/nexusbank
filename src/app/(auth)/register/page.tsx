@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import Link from 'next/link'
 import { enrollUser } from './actions'
 import { ProgressHeader } from './components/progress-header'
@@ -14,12 +14,16 @@ import {
   Check,
   Eye,
   EyeOff,
+  MapPin,
+  Search,
   Shield,
 } from 'lucide-react'
 import {
   enrollmentStep1Schema,
   enrollmentStep3Schema_personal,
 } from '@/lib/utils/validation'
+import { getCountryName, detectBrowserCountry } from '@/lib/constants/countries'
+import { CountrySelect } from '@/components/ui/country-select'
 import type { EnrollmentData, EnrollmentResult } from '@/lib/types'
 
 const INITIAL_DATA: EnrollmentData = {
@@ -28,7 +32,11 @@ const INITIAL_DATA: EnrollmentData = {
   dobDay: '',
   dobMonth: '',
   dobYear: '',
+  country: '',
   postcode: '',
+  addressLine1: '',
+  addressLine2: '',
+  city: '',
   email: '',
   confirmEmail: '',
   marketingOptOut: false,
@@ -49,10 +57,53 @@ export default function RegisterPage() {
   const [enrollmentResult, setEnrollmentResult] = useState<EnrollmentResult | undefined>(undefined)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [addressLookupLoading, setAddressLookupLoading] = useState(false)
+  const [addressLookupDone, setAddressLookupDone] = useState(false)
+  const [addressLookupError, setAddressLookupError] = useState<string | null>(null)
+
+  const showAddressFields = addressLookupDone || !!data.addressLine1 || !!data.city
+
+  // Auto-detect country from browser locale on first render
+  useEffect(() => {
+    const detected = detectBrowserCountry()
+    if (detected && !data.country) {
+      setData((prev) => ({ ...prev, country: detected }))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const updateData = useCallback((updates: Partial<EnrollmentData>) => {
     setData((prev) => ({ ...prev, ...updates }))
   }, [])
+
+  const handleAddressLookup = useCallback(async () => {
+    if (!data.postcode.trim()) return
+    setAddressLookupLoading(true)
+    setAddressLookupError(null)
+
+    try {
+      const params = new URLSearchParams({
+        postcode: data.postcode,
+        country: data.country,
+      })
+      const res = await fetch(`/api/address-lookup?${params}`)
+      const result = await res.json()
+
+      if (result.supported && !result.error) {
+        updateData({
+          city: result.city || '',
+          postcode: result.postcode || data.postcode,
+        })
+      } else if (result.error) {
+        setAddressLookupError(result.error)
+      }
+    } catch {
+      setAddressLookupError('Unable to look up address. Please enter manually.')
+    } finally {
+      setAddressLookupLoading(false)
+      setAddressLookupDone(true)
+    }
+  }, [data.postcode, data.country, updateData])
 
   const validateStep = useCallback(
     (stepNum: number): boolean => {
@@ -80,6 +131,10 @@ export default function RegisterPage() {
             if (!fieldErrors[key]) fieldErrors[key] = e.message
           }
           setErrors(fieldErrors)
+          // Reveal address fields if they have validation errors
+          if (fieldErrors.addressLine1 || fieldErrors.city) {
+            setAddressLookupDone(true)
+          }
         }
         return false
       }
@@ -161,8 +216,8 @@ export default function RegisterPage() {
               </p>
               <ul className="mt-3 space-y-2.5">
                 {[
-                  'Live in the UK',
                   'Be aged 16 or over',
+                  'Have a valid postal address',
                   'Have a valid email address',
                 ].map((item) => (
                   <li
@@ -413,31 +468,158 @@ export default function RegisterPage() {
                   )}
                 </div>
 
-                {/* Postcode */}
+                {/* Country */}
+                <div className="space-y-1.5">
+                  <label
+                    htmlFor="country"
+                    className="text-sm font-medium text-foreground"
+                  >
+                    Country of residence
+                  </label>
+                  <CountrySelect
+                    id="country"
+                    value={data.country}
+                    onChange={(code) => {
+                      updateData({
+                        country: code,
+                        addressLine1: '',
+                        addressLine2: '',
+                        city: '',
+                      })
+                      setAddressLookupDone(false)
+                      setAddressLookupError(null)
+                    }}
+                    error={errors.country}
+                  />
+                </div>
+
+                {/* Postal / Zip code + Find address */}
                 <div className="space-y-1.5">
                   <label
                     htmlFor="postcode"
                     className="text-sm font-medium text-foreground"
                   >
-                    Postcode
+                    Postal / Zip code
                   </label>
-                  <Input
-                    id="postcode"
-                    type="text"
-                    value={data.postcode}
-                    onChange={(e) =>
-                      updateData({ postcode: e.target.value.toUpperCase() })
-                    }
-                    placeholder="e.g. SW1A 1AA"
-                    className="max-w-[200px]"
-                    autoComplete="postal-code"
-                  />
+                  <div className="flex gap-2 items-start">
+                    <Input
+                      id="postcode"
+                      type="text"
+                      value={data.postcode}
+                      onChange={(e) => updateData({ postcode: e.target.value })}
+                      placeholder="Enter your postal or zip code"
+                      className="max-w-[200px]"
+                      autoComplete="postal-code"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="gap-1.5 h-10 shrink-0"
+                      onClick={handleAddressLookup}
+                      disabled={!data.postcode.trim() || !data.country}
+                      loading={addressLookupLoading}
+                    >
+                      <Search className="h-4 w-4" />
+                      Find address
+                    </Button>
+                  </div>
                   {errors.postcode && (
                     <p className="text-xs text-destructive">
                       {errors.postcode}
                     </p>
                   )}
+                  {addressLookupError && (
+                    <p className="text-xs text-amber-600 dark:text-amber-400">
+                      {addressLookupError}
+                    </p>
+                  )}
                 </div>
+
+                {/* Address fields (revealed after lookup or manual entry) */}
+                {showAddressFields && (
+                  <div className="space-y-4 rounded-lg border border-border/40 bg-accent/30 p-4">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
+                      <MapPin className="h-3.5 w-3.5" />
+                      <span>Your address</span>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label
+                        htmlFor="addressLine1"
+                        className="text-sm font-medium text-foreground"
+                      >
+                        Address line 1
+                      </label>
+                      <Input
+                        id="addressLine1"
+                        value={data.addressLine1}
+                        onChange={(e) =>
+                          updateData({ addressLine1: e.target.value })
+                        }
+                        placeholder="e.g. 14 High Street"
+                        autoComplete="address-line1"
+                      />
+                      {errors.addressLine1 && (
+                        <p className="text-xs text-destructive">
+                          {errors.addressLine1}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label
+                        htmlFor="addressLine2"
+                        className="text-sm font-medium text-foreground"
+                      >
+                        Address line 2{' '}
+                        <span className="text-muted-foreground font-normal">
+                          (optional)
+                        </span>
+                      </label>
+                      <Input
+                        id="addressLine2"
+                        value={data.addressLine2}
+                        onChange={(e) =>
+                          updateData({ addressLine2: e.target.value })
+                        }
+                        placeholder="Flat, apartment, suite, etc."
+                        autoComplete="address-line2"
+                      />
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label
+                        htmlFor="city"
+                        className="text-sm font-medium text-foreground"
+                      >
+                        Town / City
+                      </label>
+                      <Input
+                        id="city"
+                        value={data.city}
+                        onChange={(e) => updateData({ city: e.target.value })}
+                        placeholder="Town or city"
+                        autoComplete="address-level2"
+                      />
+                      {errors.city && (
+                        <p className="text-xs text-destructive">
+                          {errors.city}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Manual entry link (shown before lookup) */}
+                {!showAddressFields && (
+                  <button
+                    type="button"
+                    onClick={() => setAddressLookupDone(true)}
+                    className="text-xs text-primary hover:underline"
+                  >
+                    Or enter address manually
+                  </button>
+                )}
               </section>
 
               {/* ── Contact details ── */}
@@ -561,8 +743,16 @@ export default function RegisterPage() {
                     {data.dobDay}/{data.dobMonth}/{data.dobYear}
                   </span>
 
-                  <span className="text-muted-foreground">Postcode</span>
-                  <span className="font-medium">{data.postcode}</span>
+                  <span className="text-muted-foreground">Country</span>
+                  <span className="font-medium">{getCountryName(data.country)}</span>
+
+                  <span className="text-muted-foreground">Address</span>
+                  <span className="font-medium">
+                    {data.addressLine1}
+                    {data.addressLine2 ? `, ${data.addressLine2}` : ''}
+                    {data.city ? `, ${data.city}` : ''}
+                    , {data.postcode}
+                  </span>
                 </div>
               </div>
 

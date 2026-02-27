@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { randomInt } from 'crypto'
 import type { BusinessEnrollmentData, EnrollmentResult } from '@/lib/types'
+import { getCurrencyForCountry } from '@/lib/constants/countries'
 
 function generateAccountNumber(): string {
   return String(randomInt(10000000, 100000000))
@@ -78,7 +79,7 @@ export async function enrollBusinessUser(data: BusinessEnrollmentData): Promise<
       address_line_2: data.district || null,
       city: data.city || null,
       postcode: data.addressPostcode || data.postcode || null,
-      country: 'GB',
+      country: data.country || 'GB',
       notification_email: true,
       notification_sms: true,
       membership_number: membershipNumber,
@@ -98,7 +99,7 @@ export async function enrollBusinessUser(data: BusinessEnrollmentData): Promise<
     account_number: accountNumber,
     balance: 0,
     available_balance: 0,
-    currency_code: 'GBP',
+    currency_code: getCurrencyForCountry(data.country),
     interest_rate: 0,
     overdraft_limit: 0,
     is_primary: true,

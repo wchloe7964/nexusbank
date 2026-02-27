@@ -69,13 +69,33 @@ export async function updateSession(request: NextRequest) {
     request.nextUrl.pathname.startsWith('/forgot-password') ||
     request.nextUrl.pathname.startsWith('/reset-password')
 
-  const isPublicPage = request.nextUrl.pathname === '/' ||
-    request.nextUrl.pathname.startsWith('/auth/') ||
+  // Legal pages
+  const isLegalPage =
     request.nextUrl.pathname.startsWith('/terms') ||
     request.nextUrl.pathname.startsWith('/privacy') ||
     request.nextUrl.pathname.startsWith('/cookies') ||
     request.nextUrl.pathname.startsWith('/accessibility') ||
     request.nextUrl.pathname.startsWith('/complaints')
+
+  // Marketing / public product pages
+  const isMarketingPage =
+    request.nextUrl.pathname.startsWith('/mortgages') ||
+    request.nextUrl.pathname.startsWith('/insurance') ||
+    request.nextUrl.pathname.startsWith('/premier-banking') ||
+    request.nextUrl.pathname.startsWith('/about') ||
+    request.nextUrl.pathname.startsWith('/careers') ||
+    request.nextUrl.pathname.startsWith('/credit-cards') ||
+    request.nextUrl.pathname.startsWith('/loans') ||
+    request.nextUrl.pathname.startsWith('/help') ||
+    request.nextUrl.pathname.startsWith('/investments') ||
+    request.nextUrl.pathname.startsWith('/savings') ||
+    request.nextUrl.pathname.startsWith('/current-accounts') ||
+    request.nextUrl.pathname.startsWith('/ways-to-bank')
+
+  const isPublicPage = request.nextUrl.pathname === '/' ||
+    request.nextUrl.pathname.startsWith('/auth/') ||
+    isLegalPage ||
+    isMarketingPage
 
   if (!user && !isAuthPage && !isPublicPage) {
     const url = request.nextUrl.clone()

@@ -328,7 +328,13 @@ export default function LandingPage() {
               <Link
                 key={label}
                 href={
-                  i === 0 ? "/" : i === 1 ? "/premier-banking" : i === 3 ? "/register/business" : "/about"
+                  i === 0
+                    ? "/"
+                    : i === 1
+                      ? "/premier-banking"
+                      : i === 3
+                        ? "/register/business"
+                        : "/about"
                 }
                 className={
                   i === 0
@@ -463,7 +469,7 @@ export default function LandingPage() {
             </div>
             <div className="hidden lg:block">
               <Image
-                src="/images/hero/hero.avif"
+                src="/images/hero/hero.svg"
                 alt="Person managing their finances on a laptop"
                 width={800}
                 height={600}
@@ -645,7 +651,7 @@ export default function LandingPage() {
             {/* App lifestyle image */}
             <div className="hidden lg:flex justify-center">
               <Image
-                src="/images/sections/app.avif"
+                src="/images/sections/app.svg"
                 alt="Customer using the NexusBank app on their smartphone"
                 width={800}
                 height={600}

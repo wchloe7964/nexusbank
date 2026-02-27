@@ -11,7 +11,7 @@ import { selectPaymentRail } from '@/lib/payments/rail-selector'
 import { logAuditEvent } from '@/lib/audit'
 import { checkTransactionLimits, getUserKycLevel } from '@/lib/limits/check-limits'
 import { checkCoolingPeriod } from '@/lib/limits/cooling-period'
-import { requiresSca, isScaChallengeVerified } from '@/lib/sca/sca-service'
+import { validatePinForUser } from '@/lib/pin/pin-service'
 
 const VALID_FREQUENCIES = ['weekly', 'fortnightly', 'monthly', 'quarterly', 'annually']
 const VALID_PAYMENT_TYPES = ['standing_order', 'direct_debit', 'one_off']
@@ -25,7 +25,7 @@ export async function createScheduledPayment(data: {
   frequency: string
   paymentType: string
   reference?: string
-  scaChallengeId?: string
+  pin: string
 }): Promise<{
   success: boolean
   blocked?: boolean
@@ -33,10 +33,19 @@ export async function createScheduledPayment(data: {
   copResult?: string
   copMessage?: string
   rail?: string
-  requiresSca?: boolean
 }> {
   const supabase = await createClient()
   const userId = await requireAuth(supabase)
+
+  // ── Transfer PIN validation ──
+  const pinValid = await validatePinForUser(userId, data.pin)
+  if (!pinValid) {
+    return {
+      success: false,
+      blocked: true,
+      blockReason: 'Incorrect transfer PIN. Please try again.',
+    }
+  }
 
   validateAmount(data.amount, 'Payment amount')
 
@@ -64,26 +73,6 @@ export async function createScheduledPayment(data: {
       success: false,
       blocked: true,
       blockReason: limitCheck.reason,
-    }
-  }
-
-  // ── SCA check ──
-  const needsSca = await requiresSca(data.amount, 'large_payment')
-  if (needsSca) {
-    if (!data.scaChallengeId) {
-      return {
-        success: false,
-        requiresSca: true,
-        blocked: false,
-      }
-    }
-    const verified = await isScaChallengeVerified(data.scaChallengeId)
-    if (!verified) {
-      return {
-        success: false,
-        blocked: true,
-        blockReason: 'Security verification failed or expired. Please try again.',
-      }
     }
   }
 

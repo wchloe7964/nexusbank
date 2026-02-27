@@ -12,6 +12,7 @@ import {
   Repeat,
   Coins,
   HelpCircle,
+  BadgePoundSterling,
 } from 'lucide-react'
 
 export const transactionCategories = {
@@ -27,6 +28,7 @@ export const transactionCategories = {
   education: { label: 'Education', icon: GraduationCap, color: 'text-indigo-500', bg: 'bg-indigo-50 dark:bg-indigo-950' },
   subscriptions: { label: 'Subscriptions', icon: Repeat, color: 'text-violet-500', bg: 'bg-violet-50 dark:bg-violet-950' },
   cash: { label: 'Cash', icon: Coins, color: 'text-yellow-500', bg: 'bg-yellow-50 dark:bg-yellow-950' },
+  admin_credit: { label: 'Admin Credit', icon: BadgePoundSterling, color: 'text-teal-500', bg: 'bg-teal-50 dark:bg-teal-950' },
   other: { label: 'Other', icon: HelpCircle, color: 'text-gray-500', bg: 'bg-gray-50 dark:bg-gray-950' },
 } as const
 

@@ -20,6 +20,8 @@ import {
   Gauge,
   FileWarning,
   Percent,
+  BadgePoundSterling,
+  Clock,
 } from 'lucide-react'
 
 export interface AdminNavItem {
@@ -50,6 +52,8 @@ export const adminNavigationGroups: AdminNavGroup[] = [
       { label: 'Disputes', href: '/admin/disputes', icon: ShieldAlert },
       { label: 'Security', href: '/admin/security', icon: Shield },
       { label: 'Payments', href: '/admin/payments-ops', icon: Zap },
+      { label: 'Credit Customer', href: '/admin/credits', icon: BadgePoundSterling },
+      { label: 'Payee Cooling', href: '/admin/cooling', icon: Clock },
       { label: 'Limits & SCA', href: '/admin/limits', icon: Gauge },
     ],
   },

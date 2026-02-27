@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -11,18 +12,19 @@ import { maskAccountNumber } from '@/lib/utils/account-number'
 import { CheckCircle, ArrowRight, User, Send } from 'lucide-react'
 import type { Account, Payee } from '@/lib/types'
 import { executePayeePayment } from './actions'
-import { createScaChallenge } from '@/lib/sca/sca-service'
-import { ScaDialog } from '@/components/shared/sca-dialog'
+import { PinEntryDialog, PinSetupDialog } from '@/components/shared/pin-dialog'
 import Link from 'next/link'
 
 interface PayClientProps {
   payee: Payee
   accounts: Account[]
+  hasPinSet: boolean
 }
 
-type Step = 'form' | 'confirm' | 'sca' | 'success'
+type Step = 'form' | 'confirm' | 'pin' | 'success'
 
-export function PayClient({ payee, accounts }: PayClientProps) {
+export function PayClient({ payee, accounts, hasPinSet }: PayClientProps) {
+  const router = useRouter()
   const [step, setStep] = useState<Step>('form')
   const [fromAccountId, setFromAccountId] = useState(accounts[0]?.id || '')
   const [amount, setAmount] = useState('')
@@ -30,9 +32,8 @@ export function PayClient({ payee, accounts }: PayClientProps) {
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState('')
 
-  // SCA state
-  const [scaChallengeId, setScaChallengeId] = useState<string | null>(null)
-  const [scaExpiresAt, setScaExpiresAt] = useState<string | null>(null)
+  // PIN state
+  const [showPinSetup, setShowPinSetup] = useState(false)
 
   const fromAccount = accounts.find((a) => a.id === fromAccountId)
   const parsedAmount = parseFloat(amount)
@@ -47,7 +48,16 @@ export function PayClient({ payee, accounts }: PayClientProps) {
     setStep('confirm')
   }
 
-  function handleConfirm(challengeId?: string) {
+  function handleConfirmClick() {
+    if (!hasPinSet) {
+      setShowPinSetup(true)
+      return
+    }
+    setStep('pin')
+  }
+
+  function handlePinVerified(pin: string) {
+    setStep('confirm')
     startTransition(async () => {
       try {
         const result = await executePayeePayment({
@@ -55,25 +65,8 @@ export function PayClient({ payee, accounts }: PayClientProps) {
           payeeId: payee.id,
           amount: parsedAmount,
           reference: reference || undefined,
-          scaChallengeId: challengeId || undefined,
+          pin,
         })
-
-        // SCA required — create challenge and show dialog
-        if (result.requiresSca && !challengeId) {
-          try {
-            const challenge = await createScaChallenge('large_payment', {
-              amount: parsedAmount,
-              payee: payee.name,
-            })
-            setScaChallengeId(challenge.challengeId)
-            setScaExpiresAt(challenge.expiresAt)
-            setStep('sca')
-          } catch {
-            setError('Failed to create security challenge. Please try again.')
-            setStep('form')
-          }
-          return
-        }
 
         if (result.blocked) {
           setError(result.blockReason || 'Payment was blocked. Please contact support.')
@@ -81,6 +74,7 @@ export function PayClient({ payee, accounts }: PayClientProps) {
           return
         }
         setStep('success')
+        router.refresh()
       } catch (e) {
         setError(e instanceof Error ? e.message : 'Payment failed. Please try again.')
         setStep('form')
@@ -93,11 +87,9 @@ export function PayClient({ payee, accounts }: PayClientProps) {
     setAmount('')
     setReference(payee.reference || '')
     setError('')
-    setScaChallengeId(null)
-    setScaExpiresAt(null)
   }
 
-  if (step === 'sca' && scaChallengeId && scaExpiresAt) {
+  if (step === 'pin') {
     return (
       <>
         <Card>
@@ -117,19 +109,11 @@ export function PayClient({ payee, accounts }: PayClientProps) {
             </div>
           </CardContent>
         </Card>
-        <ScaDialog
-          challengeId={scaChallengeId}
-          expiresAt={scaExpiresAt}
-          onVerified={() => {
-            handleConfirm(scaChallengeId)
-          }}
-          onCancel={() => {
-            setStep('confirm')
-            setScaChallengeId(null)
-            setScaExpiresAt(null)
-          }}
+        <PinEntryDialog
+          onVerified={handlePinVerified}
+          onCancel={() => setStep('confirm')}
           title="Verify Payment"
-          description={`Enter the 6-digit code to authorise this ${formatGBP(parsedAmount)} payment to ${payee.name}.`}
+          description={`Enter your transfer PIN to authorise this ${formatGBP(parsedAmount)} payment to ${payee.name}.`}
         />
       </>
     )
@@ -183,55 +167,68 @@ export function PayClient({ payee, accounts }: PayClientProps) {
 
   if (step === 'confirm') {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Confirm Payment</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="rounded-lg bg-muted/50 p-4 space-y-3">
-            <div className="flex items-center gap-3 pb-3 border-b border-border">
-              <div className="rounded-xl bg-primary/10 p-2.5">
-                <User className="h-4 w-4 text-primary" />
+      <>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Confirm Payment</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="rounded-lg bg-muted/50 p-4 space-y-3">
+              <div className="flex items-center gap-3 pb-3 border-b border-border">
+                <div className="rounded-xl bg-primary/10 p-2.5">
+                  <User className="h-4 w-4 text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium">{payee.name}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {formatSortCode(payee.sort_code)} &middot; {maskAccountNumber(payee.account_number)}
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm font-medium">{payee.name}</p>
-                <p className="text-xs text-muted-foreground">
-                  {formatSortCode(payee.sort_code)} &middot; {maskAccountNumber(payee.account_number)}
-                </p>
-              </div>
-            </div>
 
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Amount</span>
-              <span className="text-lg font-bold">{formatGBP(parsedAmount)}</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">From</span>
-              <span className="font-medium">{fromAccount?.account_name}</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-muted-foreground">Available Balance</span>
-              <span className="font-medium">{formatGBP(Number(fromAccount?.balance || 0))}</span>
-            </div>
-            {reference && (
               <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Reference</span>
-                <span className="font-medium">{reference}</span>
+                <span className="text-muted-foreground">Amount</span>
+                <span className="text-lg font-bold">{formatGBP(parsedAmount)}</span>
               </div>
-            )}
-          </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">From</span>
+                <span className="font-medium">{fromAccount?.account_name}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Available Balance</span>
+                <span className="font-medium">{formatGBP(Number(fromAccount?.balance || 0))}</span>
+              </div>
+              {reference && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Reference</span>
+                  <span className="font-medium">{reference}</span>
+                </div>
+              )}
+            </div>
 
-          <div className="flex gap-3 pt-2">
-            <Button variant="outline" className="flex-1" onClick={() => setStep('form')}>
-              Edit
-            </Button>
-            <Button className="flex-1" onClick={() => handleConfirm()} disabled={isPending} loading={isPending}>
-              <Send className="mr-2 h-4 w-4" />
-              Send Payment
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+            <div className="flex gap-3 pt-2">
+              <Button variant="outline" className="flex-1" onClick={() => setStep('form')}>
+                Edit
+              </Button>
+              <Button className="flex-1" onClick={handleConfirmClick} disabled={isPending} loading={isPending}>
+                <Send className="mr-2 h-4 w-4" />
+                Send Payment
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* PIN setup for first-time users */}
+        {showPinSetup && (
+          <PinSetupDialog
+            onComplete={() => {
+              setShowPinSetup(false)
+              setStep('pin')
+            }}
+            onCancel={() => setShowPinSetup(false)}
+          />
+        )}
+      </>
     )
   }
 

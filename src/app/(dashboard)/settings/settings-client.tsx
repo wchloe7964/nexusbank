@@ -18,8 +18,7 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { updateProfile, changePassword, updateNotificationPreferences, signOutAllDevices, updateTwoFactorEnabled } from './actions'
-import { createScaChallenge } from '@/lib/sca/sca-service'
-import { ScaDialog } from '@/components/shared/sca-dialog'
+import { PinEntryDialog, PinSetupDialog } from '@/components/shared/pin-dialog'
 import { TwoFactorSetupDialog } from '@/components/two-factor/two-factor-setup-dialog'
 import { TwoFactorDisableDialog } from '@/components/two-factor/two-factor-disable-dialog'
 import { formatDistanceToNow } from 'date-fns'
@@ -67,9 +66,10 @@ interface SettingsClientProps {
   profile: Profile
   loginActivity: LoginActivity[]
   securityScore: SecurityScore
+  hasPinSet: boolean
 }
 
-export default function SettingsClient({ profile, loginActivity, securityScore }: SettingsClientProps) {
+export default function SettingsClient({ profile, loginActivity, securityScore, hasPinSet }: SettingsClientProps) {
   // Profile state
   const [fullName, setFullName] = useState(profile.full_name ?? '')
   const [email] = useState(profile.email ?? '')
@@ -108,10 +108,10 @@ export default function SettingsClient({ profile, loginActivity, securityScore }
   const [showSignOutDialog, setShowSignOutDialog] = useState(false)
   const [signingOut, setSigningOut] = useState(false)
 
-  // SCA state
-  const [scaChallengeId, setScaChallengeId] = useState<string | null>(null)
-  const [scaExpiresAt, setScaExpiresAt] = useState<string | null>(null)
-  const [scaAction, setScaAction] = useState<'password' | '2fa_enable' | '2fa_disable' | null>(null)
+  // PIN verification state
+  const [showPinDialog, setShowPinDialog] = useState(false)
+  const [showPinSetup, setShowPinSetup] = useState(false)
+  const [pinAction, setPinAction] = useState<'password' | '2fa_enable' | '2fa_disable' | null>(null)
 
   // Read biometric preference from localStorage (SSR-safe)
   useEffect(() => {
@@ -142,28 +142,26 @@ export default function SettingsClient({ profile, loginActivity, securityScore }
     setTimeout(() => setProfileMessage(null), 4000)
   }
 
-  async function handlePasswordChange(challengeId?: string) {
+  function handlePasswordChangeClick() {
+    if (!hasPinSet) {
+      setShowPinSetup(true)
+      return
+    }
+    setPinAction('password')
+    setShowPinDialog(true)
+  }
+
+  async function handlePasswordChange(pin: string) {
+    setShowPinDialog(false)
+    setPinAction(null)
     setPasswordSaving(true)
     setPasswordMessage(null)
     const result = await changePassword({
       currentPassword,
       newPassword,
-      scaChallengeId: challengeId,
+      pin,
     })
     setPasswordSaving(false)
-
-    // SCA required — create challenge
-    if (result.requiresSca && !challengeId) {
-      try {
-        const challenge = await createScaChallenge('change_password', {})
-        setScaChallengeId(challenge.challengeId)
-        setScaExpiresAt(challenge.expiresAt)
-        setScaAction('password')
-      } catch {
-        setPasswordMessage({ type: 'error', text: 'Failed to create security challenge. Please try again.' })
-      }
-      return
-    }
 
     if (result.error) {
       setPasswordMessage({ type: 'error', text: result.error })
@@ -335,7 +333,7 @@ export default function SettingsClient({ profile, loginActivity, securityScore }
                 </div>
                 <div className="flex items-center gap-3">
                   <Button
-                    onClick={() => handlePasswordChange()}
+                    onClick={handlePasswordChangeClick}
                     disabled={!currentPassword || !newPassword || newPassword !== confirmPassword || passwordSaving}
                   >
                     {passwordSaving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
@@ -370,28 +368,13 @@ export default function SettingsClient({ profile, loginActivity, securityScore }
                     {twoFactor && <Badge variant="success">Enabled</Badge>}
                     <Switch
                       checked={twoFactor}
-                      onCheckedChange={async () => {
-                        if (twoFactor) {
-                          // Disabling 2FA — request SCA first
-                          try {
-                            const challenge = await createScaChallenge('toggle_2fa', { action: 'disable' })
-                            setScaChallengeId(challenge.challengeId)
-                            setScaExpiresAt(challenge.expiresAt)
-                            setScaAction('2fa_disable')
-                          } catch {
-                            setPasswordMessage({ type: 'error', text: 'Failed to create security challenge.' })
-                          }
-                        } else {
-                          // Enabling 2FA — request SCA first
-                          try {
-                            const challenge = await createScaChallenge('toggle_2fa', { action: 'enable' })
-                            setScaChallengeId(challenge.challengeId)
-                            setScaExpiresAt(challenge.expiresAt)
-                            setScaAction('2fa_enable')
-                          } catch {
-                            setPasswordMessage({ type: 'error', text: 'Failed to create security challenge.' })
-                          }
+                      onCheckedChange={() => {
+                        if (!hasPinSet) {
+                          setShowPinSetup(true)
+                          return
                         }
+                        setPinAction(twoFactor ? '2fa_disable' : '2fa_enable')
+                        setShowPinDialog(true)
                       }}
                     />
                   </div>
@@ -557,29 +540,25 @@ export default function SettingsClient({ profile, loginActivity, securityScore }
               </CardContent>
             </Card>
 
-            {/* SCA Dialog for password change / 2FA toggle */}
-            {scaChallengeId && scaExpiresAt && scaAction && (
-              <ScaDialog
-                challengeId={scaChallengeId}
-                expiresAt={scaExpiresAt}
-                onVerified={async () => {
-                  const id = scaChallengeId
-                  setScaChallengeId(null)
-                  setScaExpiresAt(null)
-                  const action = scaAction
-                  setScaAction(null)
+            {/* PIN verification for password change / 2FA toggle */}
+            {showPinDialog && pinAction && (
+              <PinEntryDialog
+                onVerified={async (pin: string) => {
+                  setShowPinDialog(false)
+                  const action = pinAction
+                  setPinAction(null)
 
                   if (action === 'password') {
-                    handlePasswordChange(id)
+                    handlePasswordChange(pin)
                   } else if (action === '2fa_enable') {
-                    const result = await updateTwoFactorEnabled(true, id)
+                    const result = await updateTwoFactorEnabled(true, pin)
                     if (result.error) {
                       setPasswordMessage({ type: 'error', text: result.error })
                     } else {
                       setShowSetup2FA(true)
                     }
                   } else if (action === '2fa_disable') {
-                    const result = await updateTwoFactorEnabled(false, id)
+                    const result = await updateTwoFactorEnabled(false, pin)
                     if (result.error) {
                       setPasswordMessage({ type: 'error', text: result.error })
                     } else {
@@ -588,20 +567,27 @@ export default function SettingsClient({ profile, loginActivity, securityScore }
                   }
                 }}
                 onCancel={() => {
-                  setScaChallengeId(null)
-                  setScaExpiresAt(null)
-                  setScaAction(null)
+                  setShowPinDialog(false)
+                  setPinAction(null)
                 }}
                 title={
-                  scaAction === 'password'
+                  pinAction === 'password'
                     ? 'Verify Password Change'
                     : 'Verify Security Change'
                 }
-                description={
-                  scaAction === 'password'
-                    ? 'Enter the 6-digit code to authorise changing your password.'
-                    : 'Enter the 6-digit code to authorise this security setting change.'
-                }
+                description="Enter your 4-digit transfer PIN to authorise this change."
+              />
+            )}
+
+            {/* PIN setup dialog for first-time users */}
+            {showPinSetup && (
+              <PinSetupDialog
+                onComplete={() => {
+                  setShowPinSetup(false)
+                  setPasswordMessage({ type: 'success', text: 'Transfer PIN set successfully. Please try again.' })
+                  setTimeout(() => setPasswordMessage(null), 4000)
+                }}
+                onCancel={() => setShowPinSetup(false)}
               />
             )}
 

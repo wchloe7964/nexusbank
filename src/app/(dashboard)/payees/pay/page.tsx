@@ -5,6 +5,7 @@ import { Send, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { getAccounts } from '@/lib/queries/accounts'
 import { getPayees } from '@/lib/queries/payees'
+import { hasTransferPin } from '@/lib/pin/pin-service'
 import { PayClient } from './pay-client'
 
 interface PayPageProps {
@@ -15,9 +16,10 @@ export default async function PayPage({ searchParams }: PayPageProps) {
   const params = await searchParams
   const payeeId = params.id
 
-  const [accounts, payees] = await Promise.all([
+  const [accounts, payees, hasPinSet] = await Promise.all([
     getAccounts(),
     getPayees(),
+    hasTransferPin(),
   ])
 
   const payee = payeeId ? payees.find((p) => p.id === payeeId) : null
@@ -77,7 +79,7 @@ export default async function PayPage({ searchParams }: PayPageProps) {
           </Link>
         }
       />
-      <PayClient payee={payee} accounts={accounts} />
+      <PayClient payee={payee} accounts={accounts} hasPinSet={hasPinSet} />
     </div>
   )
 }

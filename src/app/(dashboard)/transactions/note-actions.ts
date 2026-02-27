@@ -42,7 +42,10 @@ export async function saveTransactionNote(data: {
       { onConflict: 'user_id,transaction_id' }
     )
 
-  if (error) throw new Error('Failed to save note: ' + error.message)
+  if (error) {
+    console.error('Note save error:', error.message)
+    throw new Error('Failed to save note. Please try again.')
+  }
 
   revalidatePath('/transactions')
 }

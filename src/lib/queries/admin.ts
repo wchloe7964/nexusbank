@@ -266,6 +266,83 @@ export async function getAdminDisputes(filters: AdminDisputeFilters = {}): Promi
   }
 }
 
+// ─── Admin Credits ──────────────────────────────────────
+
+interface AdminCreditFilters {
+  search?: string
+  page?: number
+  pageSize?: number
+}
+
+export async function getAdminCredits(filters: AdminCreditFilters = {}): Promise<{
+  data: (Transaction & { account?: { user_id: string; account_name: string } })[]
+  total: number
+  page: number
+  pageSize: number
+  totalPages: number
+}> {
+  const admin = createAdminClient()
+  const page = filters.page ?? 1
+  const pageSize = filters.pageSize ?? 20
+  const from = (page - 1) * pageSize
+  const to = from + pageSize - 1
+
+  let query = admin
+    .from('transactions')
+    .select('*, account:accounts!inner(user_id, account_name)', { count: 'exact' })
+    .eq('category', 'admin_credit')
+
+  if (filters.search) {
+    const term = `%${filters.search}%`
+    query = query.or(`description.ilike.${term},reference.ilike.${term}`)
+  }
+
+  query = query.order('transaction_date', { ascending: false }).range(from, to)
+
+  const { data, error, count } = await query
+
+  if (error) throw new Error(error.message)
+
+  const total = count ?? 0
+
+  // Enrich with profile names for display
+  const userIds = [...new Set((data ?? []).map((t: Record<string, unknown>) => {
+    const account = t.account as { user_id: string } | undefined
+    return account?.user_id
+  }).filter(Boolean))]
+
+  let profileMap: Record<string, { full_name: string; email: string }> = {}
+  if (userIds.length > 0) {
+    const { data: profiles } = await admin
+      .from('profiles')
+      .select('id, full_name, email')
+      .in('id', userIds)
+    if (profiles) {
+      profileMap = Object.fromEntries(profiles.map((p: { id: string; full_name: string; email: string }) => [p.id, { full_name: p.full_name, email: p.email }]))
+    }
+  }
+
+  // Attach profile info to each row
+  const enrichedData = (data ?? []).map((t: Record<string, unknown>) => {
+    const account = t.account as { user_id: string; account_name: string } | undefined
+    return {
+      ...t,
+      account: account ? {
+        ...account,
+        profile: profileMap[account.user_id] || null,
+      } : undefined,
+    }
+  })
+
+  return {
+    data: enrichedData as (Transaction & { account?: { user_id: string; account_name: string; profile?: { full_name: string; email: string } | null } })[],
+    total,
+    page,
+    pageSize,
+    totalPages: Math.ceil(total / pageSize),
+  }
+}
+
 // ─── Security / Login Activity ───────────────────────────
 
 interface AdminSecurityFilters {

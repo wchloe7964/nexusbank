@@ -2,10 +2,14 @@ import { PageHeader } from '@/components/shared/page-header'
 import { Card, CardContent } from '@/components/ui/card'
 import { CreditCard } from 'lucide-react'
 import { getAccounts } from '@/lib/queries/accounts'
+import { hasTransferPin } from '@/lib/pin/pin-service'
 import { NewPaymentClient } from './new-payment-client'
 
 export default async function NewPaymentPage() {
-  const accounts = await getAccounts()
+  const [accounts, hasPinSet] = await Promise.all([
+    getAccounts(),
+    hasTransferPin(),
+  ])
 
   return (
     <div className="mx-auto max-w-xl space-y-6">
@@ -24,7 +28,7 @@ export default async function NewPaymentPage() {
           </CardContent>
         </Card>
       ) : (
-        <NewPaymentClient accounts={accounts} />
+        <NewPaymentClient accounts={accounts} hasPinSet={hasPinSet} />
       )}
     </div>
   )

@@ -48,7 +48,11 @@ export interface EnrollmentData {
   dobDay: string
   dobMonth: string
   dobYear: string
+  country: string
   postcode: string
+  addressLine1: string
+  addressLine2: string
+  city: string
   // Contact details
   email: string
   confirmEmail: string
@@ -90,6 +94,7 @@ export interface BusinessEnrollmentData {
   dobDay: string
   dobMonth: string
   dobYear: string
+  country: string
   postcode: string
   email: string
   confirmEmail: string
@@ -615,4 +620,177 @@ export interface CustomerListItem {
   country: string
   security_score: number
   account_count?: number
+}
+
+// ── Secure Messaging ──
+
+export type ConversationStatus = 'open' | 'awaiting_customer' | 'awaiting_bank' | 'resolved' | 'closed'
+export type ConversationCategory = 'general' | 'payment' | 'account' | 'card' | 'loan' | 'dispute' | 'complaint' | 'fraud' | 'technical' | 'other'
+export type MessageSenderRole = 'customer' | 'advisor' | 'system'
+
+export interface Conversation {
+  id: string
+  customer_id: string
+  subject: string
+  category: ConversationCategory
+  status: ConversationStatus
+  priority: string
+  assigned_to: string | null
+  last_message_at: string
+  created_at: string
+  updated_at: string
+  // Joined
+  latest_message?: SecureMessage | null
+  unread_count?: number
+}
+
+export interface SecureMessage {
+  id: string
+  conversation_id: string
+  sender_id: string
+  sender_role: MessageSenderRole
+  body: string
+  attachments: Array<{ name: string; url: string; type: string }>
+  is_read: boolean
+  read_at: string | null
+  created_at: string
+}
+
+// ── Email / SMS Notification Delivery ──
+
+export type EmailStatus = 'queued' | 'sending' | 'sent' | 'delivered' | 'failed' | 'bounced'
+export type SmsStatus = 'queued' | 'sending' | 'sent' | 'delivered' | 'failed'
+
+export interface NotificationTemplate {
+  id: string
+  name: string
+  channel: 'email' | 'sms' | 'push'
+  category: string
+  subject_template: string
+  body_template: string
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface EmailLogEntry {
+  id: string
+  user_id: string | null
+  template_name: string | null
+  to_address: string
+  subject: string
+  body_preview: string | null
+  status: EmailStatus
+  provider: string | null
+  provider_id: string | null
+  error_message: string | null
+  created_at: string
+  sent_at: string | null
+  delivered_at: string | null
+}
+
+// ── International Payments ──
+
+export type InternationalPaymentMethod = 'swift' | 'sepa' | 'target2'
+export type InternationalPaymentStatus = 'pending' | 'processing' | 'sent' | 'in_transit' | 'completed' | 'failed' | 'cancelled' | 'returned'
+export type ChargeType = 'shared' | 'our' | 'beneficiary'
+
+export interface InternationalPayment {
+  id: string
+  user_id: string
+  from_account_id: string
+  beneficiary_name: string
+  beneficiary_iban: string | null
+  beneficiary_account_number: string | null
+  beneficiary_swift_bic: string | null
+  beneficiary_bank_name: string
+  beneficiary_bank_country: string
+  beneficiary_address: string | null
+  amount: number
+  source_currency: string
+  target_currency: string
+  exchange_rate: number | null
+  converted_amount: number | null
+  fee_amount: number
+  fee_currency: string
+  payment_method: InternationalPaymentMethod
+  charge_type: ChargeType
+  purpose_code: string | null
+  reference: string | null
+  status: InternationalPaymentStatus
+  tracking_reference: string | null
+  estimated_delivery: string | null
+  source_of_funds: string | null
+  declaration_accepted: boolean
+  screening_status: string
+  created_at: string
+  submitted_at: string | null
+  completed_at: string | null
+  // Joined
+  from_account?: Account | null
+}
+
+export interface ExchangeRate {
+  base_currency: string
+  target_currency: string
+  rate: number
+  fetched_at: string
+  expires_at: string
+}
+
+// ── Open Banking (PSD2) ──
+
+export type ProviderType = 'aisp' | 'pisp' | 'cbpii'
+export type ConsentType = 'account_access' | 'payment_initiation' | 'funds_confirmation'
+export type ConsentStatus = 'awaiting_authorisation' | 'authorised' | 'rejected' | 'revoked' | 'expired'
+
+export interface ThirdPartyProvider {
+  id: string
+  name: string
+  provider_type: ProviderType
+  fca_reference: string | null
+  client_id: string
+  logo_url: string | null
+  website: string | null
+  contact_email: string | null
+  status: string
+  created_at: string
+}
+
+export interface OpenBankingConsent {
+  id: string
+  user_id: string
+  provider_id: string
+  consent_type: ConsentType
+  account_ids: string[]
+  permissions: string[]
+  status: ConsentStatus
+  expires_at: string | null
+  last_accessed_at: string | null
+  created_at: string
+  authorised_at: string | null
+  revoked_at: string | null
+  // Joined
+  provider?: ThirdPartyProvider | null
+}
+
+// ── Joint Accounts ──
+
+export type AccountHolderRole = 'primary' | 'joint' | 'authorized_signatory' | 'power_of_attorney' | 'guardian'
+export type AccountHolderStatus = 'pending_acceptance' | 'active' | 'suspended' | 'removed'
+
+export interface AccountHolder {
+  id: string
+  account_id: string
+  user_id: string
+  role: AccountHolderRole
+  permissions: string[]
+  status: AccountHolderStatus
+  added_by: string | null
+  accepted_at: string | null
+  created_at: string
+  removed_at: string | null
+  // Joined
+  profile?: Pick<Profile, 'id' | 'full_name' | 'email' | 'avatar_url'> | null
+  account?: Account | null
 }

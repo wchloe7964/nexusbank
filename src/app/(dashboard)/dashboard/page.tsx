@@ -25,7 +25,7 @@ export default async function DashboardPage() {
   const profile = await getProfile()
 
   if (!profile) {
-    redirect('/auth/login')
+    redirect('/login')
   }
 
   const [accounts, recentTransactions, spendingByCategory] = await Promise.all([

@@ -38,7 +38,10 @@ export async function updateTransactionCategory(transactionId: string, newCatego
     })
     .eq('id', transactionId)
 
-  if (error) throw new Error('Failed to update category: ' + error.message)
+  if (error) {
+    console.error('Category update error:', error.message)
+    throw new Error('Failed to update category. Please try again.')
+  }
 
   revalidatePath('/transactions')
   revalidatePath('/insights')

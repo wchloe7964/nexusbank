@@ -5,7 +5,8 @@ import { usePathname, useRouter } from 'next/navigation'
 import { adminNavigationGroups } from '@/lib/constants/admin-navigation'
 import type { AdminNavGroup } from '@/lib/constants/admin-navigation'
 import { cn } from '@/lib/utils/cn'
-import { ChevronDown, ChevronLeft, LogOut, ShieldCheck, Building2 } from 'lucide-react'
+import { ChevronDown, ChevronLeft, LogOut, ShieldCheck } from 'lucide-react'
+import { LogoMark } from '@/components/brand/logo'
 import { useState, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { UserRole } from '@/lib/types'
@@ -56,9 +57,7 @@ export function AdminSidebar({ userName, role }: AdminSidebarProps) {
       )}>
         {!collapsed && (
           <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#00AEEF]">
-              <Building2 className="h-4 w-4 text-white" />
-            </div>
+            <LogoMark size="sm" variant="white" />
             <div className="flex flex-col">
               <span className="text-[13px] font-semibold text-white leading-none">NexusBank</span>
               <span className="text-[10px] text-[#00AEEF] font-medium tracking-wide leading-none mt-0.5">ADMIN PORTAL</span>
@@ -66,9 +65,7 @@ export function AdminSidebar({ userName, role }: AdminSidebarProps) {
           </div>
         )}
         {collapsed && (
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#00AEEF]">
-            <Building2 className="h-4 w-4 text-white" />
-          </div>
+          <LogoMark size="sm" variant="white" />
         )}
         {!collapsed && (
           <button

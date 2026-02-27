@@ -70,7 +70,7 @@ export function selectPaymentRail(
       return {
         rail: 'fps',
         displayName: 'Faster Payments',
-        estimatedSettlement: 'Usually within 2 hours',
+        estimatedSettlement: 'Usually within seconds',
         fee: 0,
         reason: 'CHAPS cutoff passed — routed via Faster Payments',
       }
@@ -90,7 +90,7 @@ export function selectPaymentRail(
   return {
     rail: 'fps',
     displayName: 'Faster Payments',
-    estimatedSettlement: 'Usually within 2 hours',
+    estimatedSettlement: 'Usually within seconds',
     fee: 0,
     reason: 'Standard payment via Faster Payments Service',
   }

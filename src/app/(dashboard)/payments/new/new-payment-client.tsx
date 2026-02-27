@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -10,14 +11,17 @@ import { CheckCircle } from 'lucide-react'
 import Link from 'next/link'
 import type { Account } from '@/lib/types'
 import { createScheduledPayment } from './actions'
+import { PinEntryDialog, PinSetupDialog } from '@/components/shared/pin-dialog'
 
 interface NewPaymentClientProps {
   accounts: Account[]
+  hasPinSet: boolean
 }
 
-type Step = 'form' | 'confirm' | 'success'
+type Step = 'form' | 'confirm' | 'pin' | 'success'
 
-export function NewPaymentClient({ accounts }: NewPaymentClientProps) {
+export function NewPaymentClient({ accounts, hasPinSet }: NewPaymentClientProps) {
+  const router = useRouter()
   const [step, setStep] = useState<Step>('form')
   const [accountId, setAccountId] = useState('')
   const [payeeName, setPayeeName] = useState('')
@@ -29,6 +33,7 @@ export function NewPaymentClient({ accounts }: NewPaymentClientProps) {
   const [paymentType, setPaymentType] = useState('standing_order')
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState('')
+  const [showPinSetup, setShowPinSetup] = useState(false)
 
   const parsedAmount = parseFloat(amount)
   const account = accounts.find((a) => a.id === accountId)
@@ -39,7 +44,16 @@ export function NewPaymentClient({ accounts }: NewPaymentClientProps) {
     setStep('confirm')
   }
 
-  function handleConfirm() {
+  function handleConfirmClick() {
+    if (!hasPinSet) {
+      setShowPinSetup(true)
+      return
+    }
+    setStep('pin')
+  }
+
+  function handlePinVerified(pin: string) {
+    setStep('confirm')
     startTransition(async () => {
       try {
         const result = await createScheduledPayment({
@@ -51,6 +65,7 @@ export function NewPaymentClient({ accounts }: NewPaymentClientProps) {
           frequency,
           paymentType,
           reference: reference || undefined,
+          pin,
         })
         if (result.blocked) {
           setError(result.blockReason || 'This payment was blocked. Please contact support.')
@@ -58,6 +73,7 @@ export function NewPaymentClient({ accounts }: NewPaymentClientProps) {
           return
         }
         setStep('success')
+        router.refresh()
       } catch (e) {
         setError(e instanceof Error ? e.message : 'Failed to create payment. Please try again.')
         setStep('form')
@@ -135,47 +151,69 @@ export function NewPaymentClient({ accounts }: NewPaymentClientProps) {
       )}
 
       {step === 'confirm' && (
-        <Card>
-          <CardHeader><CardTitle className="tracking-tight">Confirm Payment Setup</CardTitle></CardHeader>
-          <CardContent className="space-y-5">
-            <div className="rounded-lg bg-muted p-5 space-y-3">
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">From</span>
-                <span className="font-medium">{account?.account_name}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">To</span>
-                <span className="font-medium">{payeeName}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Sort Code</span>
-                <span className="font-medium font-mono">{sortCode}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Account No.</span>
-                <span className="font-medium font-mono">{accountNumber}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Amount</span>
-                <span className="text-lg font-bold">{formatGBP(parsedAmount)}</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Frequency</span>
-                <span className="font-medium capitalize">{frequency}</span>
-              </div>
-              {reference && (
+        <>
+          <Card>
+            <CardHeader><CardTitle className="tracking-tight">Confirm Payment Setup</CardTitle></CardHeader>
+            <CardContent className="space-y-5">
+              <div className="rounded-lg bg-muted p-5 space-y-3">
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Reference</span>
-                  <span className="font-medium">{reference}</span>
+                  <span className="text-muted-foreground">From</span>
+                  <span className="font-medium">{account?.account_name}</span>
                 </div>
-              )}
-            </div>
-            <div className="flex gap-3">
-              <Button variant="outline" className="flex-1" onClick={() => setStep('form')}>Back</Button>
-              <Button className="flex-1" onClick={handleConfirm} loading={isPending}>Confirm</Button>
-            </div>
-          </CardContent>
-        </Card>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">To</span>
+                  <span className="font-medium">{payeeName}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Sort Code</span>
+                  <span className="font-medium font-mono">{sortCode}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Account No.</span>
+                  <span className="font-medium font-mono">{accountNumber}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Amount</span>
+                  <span className="text-lg font-bold">{formatGBP(parsedAmount)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Frequency</span>
+                  <span className="font-medium capitalize">{frequency}</span>
+                </div>
+                {reference && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Reference</span>
+                    <span className="font-medium">{reference}</span>
+                  </div>
+                )}
+              </div>
+              <div className="flex gap-3">
+                <Button variant="outline" className="flex-1" onClick={() => setStep('form')}>Back</Button>
+                <Button className="flex-1" onClick={handleConfirmClick} loading={isPending}>Confirm</Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* PIN setup for first-time users */}
+          {showPinSetup && (
+            <PinSetupDialog
+              onComplete={() => {
+                setShowPinSetup(false)
+                setStep('pin')
+              }}
+              onCancel={() => setShowPinSetup(false)}
+            />
+          )}
+        </>
+      )}
+
+      {step === 'pin' && (
+        <PinEntryDialog
+          onVerified={handlePinVerified}
+          onCancel={() => setStep('confirm')}
+          title="Verify Payment"
+          description={`Enter your transfer PIN to authorise this ${formatGBP(parsedAmount)} ${frequency} payment to ${payeeName}.`}
+        />
       )}
 
       {step === 'success' && (

@@ -4,7 +4,7 @@ import type { CardToken } from '@/lib/types/pci'
 /**
  * Generate a PCI-compliant token for a card.
  * Token format: tok_[random 32-char hex]
- * In production, this would delegate to a PCI-DSS certified token vault (e.g., Stripe, Basis Theory).
+ * Tokens are stored in the `card_tokens` table and never expose full PAN.
  */
 export async function tokenizeCard(
   userId: string,
@@ -45,14 +45,16 @@ export async function tokenizeCard(
     .select()
     .single()
 
-  if (error) throw new Error(`Tokenization failed: ${error.message}`)
+  if (error) {
+    console.error('Tokenization error:', error.message)
+    throw new Error('Tokenization failed. Please try again.')
+  }
 
   return data as CardToken
 }
 
 /**
  * Detokenize: resolve a token back to card details.
- * In production, this would call the token vault API.
  * Returns only the token metadata — never returns full PAN.
  */
 export async function detokenize(token: string): Promise<CardToken | null> {

@@ -95,7 +95,8 @@ export async function deleteSavingsGoal(goalId: string) {
 
     // If the atomic RPC fails, do NOT fall back to manual updates — throw instead
     if (rpcError) {
-      throw new Error('Failed to return funds to account: ' + rpcError.message)
+      console.error('Savings goal RPC error:', rpcError.message)
+      throw new Error('Failed to return funds to account. Please try again or contact support.')
     }
   }
 

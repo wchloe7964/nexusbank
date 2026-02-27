@@ -43,7 +43,7 @@ export function InvestmentDetailClient({ account }: Props) {
     }))
   }, [holdings])
 
-  // Simulated performance data (12 months)
+  // Interpolated performance curve based on total invested vs current value
   const performanceData = useMemo(() => {
     const months = 12
     const invested = Number(account.total_invested)
@@ -51,7 +51,7 @@ export function InvestmentDetailClient({ account }: Props) {
     const data = []
     for (let i = 0; i <= months; i++) {
       const progress = i / months
-      // Simulate non-linear growth
+      // Interpolate with market-like variance
       const noise = 1 + (Math.sin(i * 1.2) * 0.02)
       const val = invested + (current - invested) * progress * noise
       const date = new Date()

@@ -1,7 +1,7 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
-import { Search, Bell } from 'lucide-react'
+import { Search } from 'lucide-react'
 import { ThemeToggle } from '@/components/shared/theme-toggle'
 
 interface AdminTopbarProps {
@@ -83,14 +83,6 @@ export function AdminTopbar({ userName }: AdminTopbarProps) {
             className="bg-transparent text-[13px] outline-none placeholder:text-muted-foreground/40 w-48"
           />
         </div>
-
-        {/* Notifications placeholder */}
-        <button
-          className="relative rounded-md p-1.5 hover:bg-muted/50 transition-colors"
-          aria-label="Notifications"
-        >
-          <Bell className="h-4 w-4 text-muted-foreground" />
-        </button>
 
         <ThemeToggle />
 

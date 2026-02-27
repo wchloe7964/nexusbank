@@ -25,6 +25,8 @@ import {
   Shield,
   Calculator,
   MessageSquare,
+  Globe,
+  Mail,
 } from 'lucide-react'
 
 export interface NavItem {
@@ -62,6 +64,7 @@ export const navigationGroups: NavGroup[] = [
       { label: 'Transfers', href: '/transfers', icon: ArrowLeftRight },
       { label: 'Payments', href: '/payments', icon: Receipt },
       { label: 'Payees', href: '/payees', icon: Users },
+      { label: 'International', href: '/transfers/international', icon: Globe },
       { label: 'Transactions', href: '/transactions', icon: History },
       { label: 'Statements', href: '/statements', icon: FileDown },
     ],
@@ -90,9 +93,11 @@ export const navigationGroups: NavGroup[] = [
     label: 'Support & Settings',
     collapsible: true,
     items: [
+      { label: 'Messages', href: '/messages', icon: Mail },
       { label: 'Disputes', href: '/disputes', icon: ShieldAlert },
       { label: 'Complaints', href: '/my-complaints', icon: MessageSquare },
       { label: 'Notifications', href: '/notifications', icon: Bell },
+      { label: 'Open Banking', href: '/settings/open-banking', icon: Shield },
       { label: 'Settings', href: '/settings', icon: Settings },
     ],
   },
@@ -102,9 +107,9 @@ export const navigationGroups: NavGroup[] = [
 export const navigation = navigationGroups.flatMap((g) => g.items)
 
 export const bottomNavItems = [
-  { label: 'Accounts', href: '/dashboard', icon: Home },
-  { label: 'Products', href: '/accounts', icon: Wallet },
+  { label: 'Home', href: '/dashboard', icon: Home },
+  { label: 'Accounts', href: '/accounts', icon: Wallet },
   { label: 'Pay & Transfer', href: '/transfers', icon: Send },
-  { label: 'Help', href: '/notifications', icon: HelpCircle },
+  { label: 'Messages', href: '/messages', icon: Mail },
   { label: 'More', href: '#more', icon: MoreHorizontal },
 ]

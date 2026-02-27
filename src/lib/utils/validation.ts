@@ -54,8 +54,6 @@ export const changePasswordSchema = z.object({
 
 // ---------- Enrollment Schemas (3-step personal) ----------
 
-const ukPostcodeRegex = /^[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}$/i
-
 // Step 1 — Your Details
 export const enrollmentStep1Schema = z.object({
   firstName: z.string().min(1, 'First name is required').max(50),
@@ -63,7 +61,11 @@ export const enrollmentStep1Schema = z.object({
   dobDay: z.string().min(1, 'Day is required').max(2),
   dobMonth: z.string().min(1, 'Month is required').max(2),
   dobYear: z.string().length(4, 'Year is required'),
-  postcode: z.string().regex(ukPostcodeRegex, 'Please enter a valid UK postcode'),
+  country: z.string().min(2, 'Please select a country').max(2),
+  postcode: z.string().min(1, 'Postal / zip code is required').max(15),
+  addressLine1: z.string().min(1, 'Address line 1 is required').max(200),
+  addressLine2: z.string().max(200).optional().or(z.literal('')),
+  city: z.string().min(1, 'Town or city is required').max(100),
   email: z.string().email('Please enter a valid email address'),
   confirmEmail: z.string().email('Please confirm your email address'),
 }).refine((data) => data.email === data.confirmEmail, {
@@ -114,7 +116,8 @@ export const businessStep1Schema = z.object({
   dobDay: z.string().min(1, 'Required').max(2),
   dobMonth: z.string().min(1, 'Required').max(2),
   dobYear: z.string().length(4, 'Required'),
-  postcode: z.string().regex(ukPostcodeRegex, 'Please enter a valid UK postcode'),
+  country: z.string().min(2, 'Please select a country').max(2),
+  postcode: z.string().min(1, 'Postal / zip code is required').max(15),
   email: z.string().email('Please enter a valid email address'),
   confirmEmail: z.string().email('Please confirm your email address'),
   // Business details
@@ -131,7 +134,7 @@ export const businessStep1Schema = z.object({
   addressLine1: z.string().min(1, 'House/flat name and number is required'),
   street: z.string().min(1, 'Street is required'),
   city: z.string().min(1, 'Town/city is required'),
-  addressPostcode: z.string().regex(ukPostcodeRegex, 'Please enter a valid postcode'),
+  addressPostcode: z.string().min(1, 'Postal / zip code is required').max(15),
   moveMonth: z.string().min(1, 'Required'),
   moveYear: z.string().length(4, 'Required'),
 }).refine((data) => data.email === data.confirmEmail, {
@@ -294,4 +297,35 @@ export const spendingAlertSchema = z.object({
   category: z.string().optional().nullable(),
   merchantName: z.string().max(100).optional().nullable(),
   thresholdAmount: z.number().positive('Threshold must be greater than 0').max(1000000),
+})
+
+// ---------- Secure Messaging ----------
+
+export const messageComposeSchema = z.object({
+  subject: z.string().min(1, 'Subject is required').max(200, 'Subject must be under 200 characters'),
+  category: z.enum(['general', 'payment', 'account', 'card', 'loan', 'dispute', 'fraud', 'technical', 'other']),
+  body: z.string().min(1, 'Message is required').max(5000, 'Message must be under 5000 characters'),
+})
+
+export const messageReplySchema = z.object({
+  conversationId: z.string().uuid(),
+  body: z.string().min(1, 'Reply is required').max(5000, 'Reply must be under 5000 characters'),
+})
+
+// ---------- International Payments ----------
+
+export const internationalPaymentSchema = z.object({
+  fromAccountId: z.string().uuid('Please select an account'),
+  beneficiaryName: z.string().min(1, 'Recipient name is required').max(200),
+  beneficiaryIban: z.string().max(34).optional().or(z.literal('')),
+  beneficiarySwiftBic: z.string().max(11).optional().or(z.literal('')),
+  beneficiaryBankName: z.string().min(1, 'Bank name is required').max(200),
+  beneficiaryBankCountry: z.string().length(2, 'Please enter a 2-letter country code'),
+  beneficiaryAddress: z.string().max(300).optional().or(z.literal('')),
+  amount: z.number().positive('Amount must be greater than 0').max(250000, 'Maximum is 250,000'),
+  targetCurrency: z.string().length(3, 'Please select a currency'),
+  chargeType: z.enum(['shared', 'our', 'beneficiary']),
+  purposeCode: z.string().min(1, 'Please select a purpose'),
+  reference: z.string().max(35).optional().or(z.literal('')),
+  sourceOfFunds: z.string().min(1, 'Please select source of funds'),
 })

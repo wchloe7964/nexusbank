@@ -3,7 +3,7 @@
 -- =============================================
 -- Note: The initial user must be created via Supabase Auth first.
 -- Use the dashboard or CLI to create a user with:
---   Email: james.richardson@nexusbank.co.uk
+--   Email: james.richardson@nexusbankuk.com
 --   Password: NexusBank2025!
 -- Then update the UUID below to match.
 
@@ -20,7 +20,7 @@ BEGIN
 
 -- Profile
 INSERT INTO public.profiles (id, email, full_name, phone_number, address_line_1, city, postcode)
-VALUES (demo_user_id, 'james.richardson@nexusbank.co.uk', 'James Richardson', '+44 7700 900123',
+VALUES (demo_user_id, 'james.richardson@nexusbankuk.com', 'James Richardson', '+44 7700 900123',
         '42 King Street', 'London', 'EC2V 8AT')
 ON CONFLICT (id) DO NOTHING;
 

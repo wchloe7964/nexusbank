@@ -193,7 +193,7 @@ async function deliverEmail(options: SendEmailOptions): Promise<void> {
     if (mod?.Resend) {
       const resend = new mod.Resend(process.env.RESEND_API_KEY)
       await resend.emails.send({
-        from: process.env.EMAIL_FROM || 'NexusBank <no-reply@nexusbank.co.uk>',
+        from: process.env.EMAIL_FROM || 'NexusBank <no-reply@nexusbankuk.com>',
         to: options.to,
         subject: options.subject,
         text: options.body,

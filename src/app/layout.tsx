@@ -15,6 +15,24 @@ export const metadata: Metadata = {
   title: 'NexusBank — Modern Digital Banking',
   description: 'Your complete banking experience. Accounts, transfers, cards, loans, and more — all in one place.',
   icons: { icon: '/favicon.ico' },
+  manifest: '/site.webmanifest',
+  metadataBase: new URL('https://nexusbankuk.com'),
+  openGraph: {
+    title: 'NexusBank — Modern Digital Banking',
+    description: 'Your complete banking experience. Accounts, transfers, cards, loans, and more — all in one place.',
+    url: 'https://nexusbankuk.com',
+    siteName: 'NexusBank',
+    locale: 'en_GB',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'NexusBank — Modern Digital Banking',
+    description: 'Your complete banking experience. Accounts, transfers, cards, loans, and more — all in one place.',
+  },
+  alternates: {
+    canonical: 'https://nexusbankuk.com',
+  },
 }
 
 export default function RootLayout({

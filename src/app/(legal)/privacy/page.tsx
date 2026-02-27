@@ -361,8 +361,8 @@ export default function PrivacyPage() {
               </li>
               <li>
                 <strong>Email:</strong>{' '}
-                <Link href="mailto:dpo@nexusbank.co.uk" className="text-primary hover:underline underline-offset-4">
-                  dpo@nexusbank.co.uk
+                <Link href="mailto:dpo@nexusbankuk.com" className="text-primary hover:underline underline-offset-4">
+                  dpo@nexusbankuk.com
                 </Link>
               </li>
               <li>

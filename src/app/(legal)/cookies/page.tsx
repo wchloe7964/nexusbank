@@ -45,7 +45,7 @@ export default function CookiesPage() {
           </p>
           <p className="mt-3">
             This Cookie Policy explains what cookies NexusBank Ltd (&quot;NexusBank&quot;,
-            &quot;we&quot;, &quot;us&quot;) uses on our website (www.nexusbank.co.uk) and
+            &quot;we&quot;, &quot;us&quot;) uses on our website (www.nexusbankuk.com) and
             mobile application, why we use them, and how you can manage your preferences.
             This policy should be read alongside our{' '}
             <Link href="/privacy" className="text-primary hover:underline underline-offset-4">
@@ -341,8 +341,8 @@ export default function CookiesPage() {
           <p>
             If you have any questions about our use of cookies or other tracking
             technologies, please contact our Data Protection Officer at{' '}
-            <Link href="mailto:dpo@nexusbank.co.uk" className="text-primary hover:underline underline-offset-4">
-              dpo@nexusbank.co.uk
+            <Link href="mailto:dpo@nexusbankuk.com" className="text-primary hover:underline underline-offset-4">
+              dpo@nexusbankuk.com
             </Link>{' '}
             or write to: Data Protection Officer, NexusBank Ltd, 1 Nexus Square, London,
             EC2A 1BB.

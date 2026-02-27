@@ -68,10 +68,10 @@ export default function ComplaintsPage() {
               <h3 className="text-sm font-semibold text-foreground mb-2">By email</h3>
               <p>
                 <Link
-                  href="mailto:complaints@nexusbank.co.uk"
+                  href="mailto:complaints@nexusbankuk.com"
                   className="text-primary hover:underline underline-offset-4"
                 >
-                  complaints@nexusbank.co.uk
+                  complaints@nexusbankuk.com
                 </Link>
               </p>
               <p className="mt-1 text-xs text-muted-foreground">
@@ -354,7 +354,7 @@ export default function ComplaintsPage() {
               WhatsApp +44 7365 192524
             </Link>
             <Link
-              href="mailto:complaints@nexusbank.co.uk"
+              href="mailto:complaints@nexusbankuk.com"
               className="inline-flex items-center rounded-full border-2 border-primary px-5 py-2 text-xs font-semibold text-primary hover:bg-primary hover:text-white transition-all"
             >
               Email complaints

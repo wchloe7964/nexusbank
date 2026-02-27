@@ -1,0 +1,16 @@
+{
+  "name": "NexusBank",
+  "short_name": "NexusBank",
+  "description": "Modern Digital Banking — Accounts, transfers, cards, loans, and more.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#0f172a",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon"
+    }
+  ]
+}

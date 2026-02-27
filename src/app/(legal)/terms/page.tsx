@@ -300,8 +300,8 @@ export default function TermsPage() {
             </li>
             <li>
               emailing{' '}
-              <Link href="mailto:complaints@nexusbank.co.uk" className="text-primary hover:underline underline-offset-4">
-                complaints@nexusbank.co.uk
+              <Link href="mailto:complaints@nexusbankuk.com" className="text-primary hover:underline underline-offset-4">
+                complaints@nexusbankuk.com
               </Link>;
             </li>
             <li>
@@ -359,8 +359,8 @@ export default function TermsPage() {
             Contact our Customer Services team on WhatsApp at{' '}
             <strong>+44 7365 192524</strong> (Monday to Friday, 8am&ndash;8pm;
             Saturday 9am&ndash;5pm) or email{' '}
-            <Link href="mailto:help@nexusbank.co.uk" className="text-primary hover:underline underline-offset-4">
-              help@nexusbank.co.uk
+            <Link href="mailto:help@nexusbankuk.com" className="text-primary hover:underline underline-offset-4">
+              help@nexusbankuk.com
             </Link>.
           </p>
         </section>

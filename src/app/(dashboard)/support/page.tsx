@@ -65,7 +65,7 @@ const contactMethods = [
   },
   {
     label: "Email us",
-    detail: "support@nexusbank.co.uk",
+    detail: "support@nexusbankuk.com",
     sublabel: "We aim to respond within 24 hours",
     icon: Mail,
   },

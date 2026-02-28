@@ -45,3 +45,21 @@ supabase/.temp/
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Roundcube / PHP (prevent VPS files from leaking into repo)
+/vendor/
+/plugins/
+/program/
+/skins/
+/public_html/
+/installer/
+/SQL/
+/bin/
+/config/
+/temp/
+/logs/
+composer.json
+composer.lock
+*.php
+!next.config.php
+.htaccess

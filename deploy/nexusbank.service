@@ -1,0 +1,31 @@
+[Unit]
+Description=NexusBank UK Production App
+Documentation=https://nexusbankuk.com
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/www/wwwroot/nexusbankuk.com
+ExecStart=/root/.nvm/versions/node/v22.14.0/bin/node node_modules/.bin/next start -p 3001
+Restart=always
+RestartSec=5
+StartLimitInterval=60
+StartLimitBurst=10
+Environment=NODE_ENV=production
+Environment=PORT=3001
+StandardOutput=append:/www/wwwroot/nexusbankuk.com/logs/nexusbank.log
+StandardError=append:/www/wwwroot/nexusbankuk.com/logs/nexusbank-error.log
+
+# Graceful shutdown
+KillMode=mixed
+KillSignal=SIGTERM
+TimeoutStopSec=10
+
+# Security hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/www/wwwroot/nexusbankuk.com/logs /www/wwwroot/nexusbankuk.com/.next/cache
+
+[Install]
+WantedBy=multi-user.target

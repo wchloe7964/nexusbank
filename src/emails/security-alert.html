@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="color-scheme" content="light dark">
+  <meta name="supported-color-schemes" content="light dark">
+  <title>Security Alert — NexusBank</title>
+  <!--[if mso]>
+  <noscript>
+    <xml>
+      <o:OfficeDocumentSettings>
+        <o:PixelsPerInch>96</o:PixelsPerInch>
+      </o:OfficeDocumentSettings>
+    </xml>
+  </noscript>
+  <![endif]-->
+  <style>
+    :root { color-scheme: light dark; supported-color-schemes: light dark; }
+    @media (prefers-color-scheme: dark) {
+      .dark-bg { background-color: #0c1222 !important; }
+      .dark-card { background-color: #162032 !important; }
+      .dark-text { color: #e2e8f0 !important; }
+      .dark-muted { color: #94a3b8 !important; }
+      .dark-border { border-color: #2a3a52 !important; }
+      .dark-feature-bg { background-color: #1e293b !important; }
+    }
+    @media only screen and (max-width: 600px) {
+      .container { width: 100% !important; padding: 0 16px !important; }
+      .hero-padding { padding: 36px 24px !important; }
+      .content-padding { padding: 24px 20px !important; }
+      .mobile-full { width: 100% !important; }
+    }
+  </style>
+</head>
+<body style="margin:0; padding:0; background-color:#f0f2f7; font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen,Ubuntu,sans-serif; -webkit-font-smoothing:antialiased;">
+
+  <!-- Preheader -->
+  <div style="display:none; max-height:0; overflow:hidden; mso-hide:all;">
+    Security Alert: {{alert_summary}} — Action may be required on your NexusBank account.
+    &nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;
+  </div>
+
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f0f2f7;" class="dark-bg">
+    <tr>
+      <td align="center" style="padding:24px 16px;">
+        <table role="presentation" class="container" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px; width:100%;">
+
+          <!-- Logo Bar -->
+          <tr>
+            <td align="center" style="padding:32px 0 24px;">
+              <a href="{{website_url}}" target="_blank" style="text-decoration:none;">
+                <img src="https://nexusbankuk.com/images/sections/logo_dark.png" alt="NexusBank" width="160" style="display:block; border:0; outline:none; text-decoration:none; height:auto; max-width:160px;">
+              </a>
+            </td>
+          </tr>
+
+          <!-- Main Card -->
+          <tr>
+            <td>
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#ffffff; border-radius:16px; box-shadow:0 4px 24px rgba(0,0,0,0.06); overflow:hidden;" class="dark-card">
+
+                <!-- Alert Header - Red Gradient -->
+                <tr>
+                  <td>
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border-radius:16px 16px 0 0; overflow:hidden;">
+                      <tr>
+                        <td class="hero-padding" style="background:linear-gradient(135deg,#dc2626 0%,#991b1b 100%); padding:44px 40px; text-align:center;">
+                          <!-- Shield Icon -->
+                          <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center">
+                            <tr>
+                              <td style="background:rgba(255,255,255,0.15); width:64px; height:64px; border-radius:50%; text-align:center; vertical-align:middle;" align="center">
+                                <span style="font-size:28px; font-weight:800; color:#ffffff; line-height:64px;">!</span>
+                              </td>
+                            </tr>
+                          </table>
+                          <h1 style="margin:20px 0 8px; font-size:24px; font-weight:800; color:#ffffff; letter-spacing:-0.3px; line-height:1.2;">
+                            Security Alert
+                          </h1>
+                          <p style="margin:0; font-size:14px; color:rgba(255,255,255,0.85); line-height:1.5;">
+                            {{alert_summary}}
+                          </p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+
+                <!-- Content -->
+                <tr>
+                  <td class="content-padding" style="padding:36px 40px 20px;">
+                    <p style="margin:0 0 4px; font-size:15px; color:#64748b; font-weight:500;" class="dark-muted">Hello,</p>
+                    <h2 style="margin:0 0 20px; font-size:20px; font-weight:700; color:#1e293b; letter-spacing:-0.3px;" class="dark-text">{{customer_name}}</h2>
+                    <p style="margin:0 0 28px; font-size:15px; color:#475569; line-height:1.7;" class="dark-muted">
+                      {{alert_message}}
+                    </p>
+
+                    <!-- Alert Details Box -->
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#fef2f2; border-radius:12px; border:1px solid #fecaca; margin-bottom:28px;">
+                      <tr>
+                        <td style="padding:24px;">
+                          <p style="margin:0 0 16px; font-size:13px; text-transform:uppercase; letter-spacing:1.5px; color:#dc2626; font-weight:700;">Event Details</p>
+                          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                            <tr>
+                              <td style="padding:8px 0; border-bottom:1px solid rgba(220,38,38,0.1);">
+                                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                                  <tr>
+                                    <td style="font-size:13px; color:#991b1b; font-weight:500;">Event</td>
+                                    <td align="right" style="font-size:13px; color:#7f1d1d; font-weight:700;">{{event_type}}</td>
+                                  </tr>
+                                </table>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td style="padding:8px 0; border-bottom:1px solid rgba(220,38,38,0.1);">
+                                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                                  <tr>
+                                    <td style="font-size:13px; color:#991b1b; font-weight:500;">Date & Time</td>
+                                    <td align="right" style="font-size:13px; color:#7f1d1d; font-weight:700;">{{event_datetime}}</td>
+                                  </tr>
+                                </table>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td style="padding:8px 0; border-bottom:1px solid rgba(220,38,38,0.1);">
+                                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                                  <tr>
+                                    <td style="font-size:13px; color:#991b1b; font-weight:500;">Location</td>
+                                    <td align="right" style="font-size:13px; color:#7f1d1d; font-weight:700;">{{event_location}}</td>
+                                  </tr>
+                                </table>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td style="padding:8px 0; border-bottom:1px solid rgba(220,38,38,0.1);">
+                                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                                  <tr>
+                                    <td style="font-size:13px; color:#991b1b; font-weight:500;">IP Address</td>
+                                    <td align="right" style="font-size:13px; color:#7f1d1d; font-weight:700; font-family:'SF Mono',Monaco,Consolas,monospace;">{{ip_address}}</td>
+                                  </tr>
+                                </table>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td style="padding:8px 0;">
+                                <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                                  <tr>
+                                    <td style="font-size:13px; color:#991b1b; font-weight:500;">Device</td>
+                                    <td align="right" style="font-size:13px; color:#7f1d1d; font-weight:700;">{{device_info}}</td>
+                                  </tr>
+                                </table>
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+                    </table>
+
+                    <!-- Action Buttons -->
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:8px;">
+                      <tr>
+                        <td align="center">
+                          <!-- Primary: This was me -->
+                          <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:12px;">
+                            <tr>
+                              <td style="background:linear-gradient(135deg,#059669 0%,#10b981 100%); border-radius:50px; box-shadow:0 4px 16px rgba(16,185,129,0.3);">
+                                <a href="{{confirm_url}}" target="_blank" style="display:inline-block; padding:13px 36px; color:#ffffff; font-size:14px; font-weight:700; text-decoration:none; letter-spacing:0.3px;">
+                                  Yes, This Was Me
+                                </a>
+                              </td>
+                            </tr>
+                          </table>
+                          <!-- Secondary: Wasn't me -->
+                          <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                            <tr>
+                              <td style="background-color:#ffffff; border:2px solid #dc2626; border-radius:50px;">
+                                <a href="{{report_url}}" target="_blank" style="display:inline-block; padding:11px 36px; color:#dc2626; font-size:14px; font-weight:700; text-decoration:none; letter-spacing:0.3px;">
+                                  No, Secure My Account
+                                </a>
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+
+                <!-- Divider -->
+                <tr>
+                  <td style="padding:12px 40px;">
+                    <div style="height:1px; background:linear-gradient(90deg,transparent,#e2e8f0,transparent);" class="dark-border"></div>
+                  </td>
+                </tr>
+
+                <!-- Security Tips -->
+                <tr>
+                  <td class="content-padding" style="padding:20px 40px 36px;">
+                    <p style="margin:0 0 16px; font-size:13px; text-transform:uppercase; letter-spacing:1.5px; color:#0066ff; font-weight:700;">Protect Your Account</p>
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td style="padding:8px 0;">
+                          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                            <tr>
+                              <td width="28" valign="top" style="font-size:14px; color:#0066ff;">&#9679;</td>
+                              <td style="font-size:13px; color:#475569; line-height:1.6;" class="dark-muted">Never share your password, PIN, or one-time passcodes with anyone</td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding:8px 0;">
+                          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                            <tr>
+                              <td width="28" valign="top" style="font-size:14px; color:#0066ff;">&#9679;</td>
+                              <td style="font-size:13px; color:#475569; line-height:1.6;" class="dark-muted">Enable biometric authentication for additional security</td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td style="padding:8px 0;">
+                          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                            <tr>
+                              <td width="28" valign="top" style="font-size:14px; color:#0066ff;">&#9679;</td>
+                              <td style="font-size:13px; color:#475569; line-height:1.6;" class="dark-muted">NexusBank will never ask you for your full password via email or phone</td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+
+              </table>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="padding:32px 20px; text-align:center;">
+              <p style="margin:0 0 8px; font-size:13px; color:#94a3b8; font-weight:500;" class="dark-muted">
+                NexusBank UK &bull; Authorised & Regulated
+              </p>
+              <p style="margin:0 0 20px; font-size:11px; color:#94a3b8; line-height:1.6;" class="dark-muted">
+                NexusBank UK Ltd is authorised by the Prudential Regulation Authority and regulated<br>
+                by the Financial Conduct Authority and the Prudential Regulation Authority.
+              </p>
+              <p style="margin:0 0 12px;">
+                <a href="{{website_url}}" style="color:#64748b; text-decoration:none; font-size:12px; font-weight:500; margin:0 8px;">Website</a>
+                <span style="color:#cbd5e1;">&bull;</span>
+                <a href="{{privacy_url}}" style="color:#64748b; text-decoration:none; font-size:12px; font-weight:500; margin:0 8px;">Privacy</a>
+                <span style="color:#cbd5e1;">&bull;</span>
+                <a href="{{terms_url}}" style="color:#64748b; text-decoration:none; font-size:12px; font-weight:500; margin:0 8px;">Terms</a>
+                <span style="color:#cbd5e1;">&bull;</span>
+                <a href="{{unsubscribe_url}}" style="color:#64748b; text-decoration:none; font-size:12px; font-weight:500; margin:0 8px;">Unsubscribe</a>
+              </p>
+              <p style="margin:0; font-size:11px; color:#cbd5e1;" class="dark-muted">
+                &copy; {{current_year}} NexusBank UK Ltd. All rights reserved.
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

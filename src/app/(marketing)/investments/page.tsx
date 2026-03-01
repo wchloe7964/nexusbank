@@ -302,7 +302,7 @@ export default function InvestmentsPage() {
             </div>
             <div className="relative rounded-2xl overflow-hidden">
               <Image
-                src="/images/sections/investment-promo.avif"
+                src="/images/sections/investment-promo.jpg"
                 alt="Smart Investor prize draw"
                 width={640}
                 height={420}

@@ -605,7 +605,7 @@ export default function CurrentAccountsPage() {
             </div>
             <div className="hidden lg:block relative rounded-2xl overflow-hidden">
               <Image
-                src="/images/sections/children.avif"
+                src="/images/sections/children.jpg"
                 alt="Young person banking"
                 width={320}
                 height={400}

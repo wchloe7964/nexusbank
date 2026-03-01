@@ -544,7 +544,7 @@ export default function LandingPage() {
             </div>
             <div className="hidden lg:block">
               <Image
-                src="/images/sections/time.avif"
+                src="/images/sections/time.jpg"
                 alt="Savings and investment concept"
                 width={800}
                 height={600}
@@ -562,7 +562,7 @@ export default function LandingPage() {
             <div className="grid md:grid-cols-2">
               <div className="relative h-48 md:h-auto">
                 <Image
-                  src="/images/sections/children.avif"
+                  src="/images/sections/children.jpg"
                   alt="Child learning about money and saving"
                   fill
                   className="object-cover"

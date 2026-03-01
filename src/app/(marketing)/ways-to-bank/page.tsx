@@ -55,7 +55,7 @@ const channels = [
   },
   {
     name: "Online Banking",
-    image: "/images/channels/banking-hub.avif",
+    image: "/images/channels/banking-hub.jpg",
     tag: null,
     headline: "Full access via browser",
     description:
@@ -72,7 +72,7 @@ const channels = [
   },
   {
     name: "Telephone Banking",
-    image: "/images/channels/telephone-banking.avif",
+    image: "/images/channels/telephone-banking.jpg",
     tag: "24/7",
     headline: "Speak to a person",
     description:
@@ -271,8 +271,8 @@ export default function WaysToBankPage() {
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {[
               { title: "Post Office Banking", desc: "Withdraw cash, check your balance and make deposits at 11,500 Post Office branches.", image: "/images/channels/post-office.jpeg" },
-              { title: "Local Banking Hubs", desc: "Shared banking hubs offering counter services from multiple banks in one location.", image: "/images/channels/local-banking.avif" },
-              { title: "Find a Location", desc: "Search for NexusBank branches, ATMs, and Post Office locations near you.", image: "/images/channels/locations.avif" },
+              { title: "Local Banking Hubs", desc: "Shared banking hubs offering counter services from multiple banks in one location.", image: "/images/channels/local-banking.jpg" },
+              { title: "Find a Location", desc: "Search for NexusBank branches, ATMs, and Post Office locations near you.", image: "/images/channels/locations.jpg" },
             ].map((loc) => (
               <div key={loc.title} className="rounded-xl border border-border bg-white dark:bg-card overflow-hidden transition-all hover:border-primary/40 hover:shadow-md">
                 <div className="relative h-40">

@@ -1,6 +1,19 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
+// Custom fetch with extended timeout for slow VPS outbound network
+function fetchWithTimeout(timeout = 60_000): typeof fetch {
+  return (input, init) => {
+    const controller = new AbortController()
+    const id = setTimeout(() => controller.abort(), timeout)
+
+    return fetch(input, {
+      ...init,
+      signal: controller.signal,
+    }).finally(() => clearTimeout(id))
+  }
+}
+
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
@@ -25,6 +38,9 @@ export async function updateSession(request: NextRequest) {
             supabaseResponse.cookies.set(name, value, options)
           )
         },
+      },
+      global: {
+        fetch: fetchWithTimeout(60_000),
       },
     }
   )

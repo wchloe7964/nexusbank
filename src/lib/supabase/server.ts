@@ -1,6 +1,19 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
+// Custom fetch with extended timeout for slow VPS outbound network
+function fetchWithTimeout(timeout = 60_000): typeof fetch {
+  return (input, init) => {
+    const controller = new AbortController()
+    const id = setTimeout(() => controller.abort(), timeout)
+
+    return fetch(input, {
+      ...init,
+      signal: controller.signal,
+    }).finally(() => clearTimeout(id))
+  }
+}
+
 export async function createClient() {
   const cookieStore = await cookies()
 
@@ -22,6 +35,9 @@ export async function createClient() {
             // This can be ignored if you have middleware refreshing sessions.
           }
         },
+      },
+      global: {
+        fetch: fetchWithTimeout(60_000),
       },
     }
   )
